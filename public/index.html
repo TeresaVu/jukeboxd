@@ -191,6 +191,7 @@
                 // Ready
                 player.addListener('ready', ({ device_id }) => {
                     console.log('Ready with Device ID', device_id);
+                    setDevice(device_id);
                 });
 
                 // Not Ready
@@ -226,6 +227,24 @@
                 };
 
                 player.connect();
+
+                function setDevice(device_id) {
+                  $.ajax({
+                    url: 'https://api.spotify.com/v1/me/player',
+                    type: 'PUT',
+                    data: JSON.stringify({ device_ids: [device_id] }),
+                    headers: {
+                      'Authorization': 'Bearer ' + access_token,
+                      'Content-Type': 'application/json'
+                    },
+                    success: function(response) {
+                      console.log('Device set for playback:', device_id);
+                    },
+                    error: function(xhr, status, error) {
+                      console.error('Error setting device:', error);
+                    }
+                  });
+                }
 
                 function showCurrentlyPlaying() {
                   player.getCurrentState().then(state => {
