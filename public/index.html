@@ -211,19 +211,24 @@
                     console.error(message);
                 });
 
+                player.addListener('player_state_changed', ({
+                    position,
+                    duration,
+                    track_window: { current_track }
+                  }) => {
+                    showCurrentlyPlaying();
+                  });
+
                 document.getElementById('previousTrack').onclick = async function() {
-                  await player.previousTrack();
-                  showCurrentlyPlaying();
+                  player.previousTrack();
                 };
 
                 document.getElementById('togglePlay').onclick = function() {
                   player.togglePlay();
-                  showCurrentlyPlaying();
                 };
 
                 document.getElementById('nextTrack').onclick = async function() {
-                  await player.nextTrack();
-                  showCurrentlyPlaying();
+                  player.nextTrack();
                 };
 
                 player.connect();
