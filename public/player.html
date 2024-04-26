@@ -13,6 +13,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="background-style.css">
+  <link rel="stylesheet" href="styles.css">
   <script>
       //jQuery stuff
       $(document).ready(function(){
@@ -75,6 +76,15 @@
         <br>
         <img id="currentTrackImage" src="" alt="">
         <p id="currentlyPlaying"></p><br>
+        <div class="progress-container">
+          <span class="timestamp" id="current-time">0:00</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <span class="timestamp" id="total-duration">0:00</span>
+        </div>        
+        <label>Add Comment:</label><br>
+        <input type="text" id="commentInput" style="border-radius: 20px; padding: 10px;" placeholder="Type here...">
 
         <script id="user-profile-template" type="text/x-handlebars-template">
             <h1>Logged in as {{display_name}}</h1>
@@ -86,11 +96,6 @@
                 <dl class="dl-horizontal">
                   <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
                   <dt>Id</dt><dd>{{id}}</dd>
-                  <!-- <dt>Email</dt><dd>{{email}}</dd> -->
-                  <!-- <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd> -->
-                  <!-- <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
-                  <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
-                  <dt>Country</dt><dd>{{country}}</dd> -->
                 </dl>
               </div>
             </div>
@@ -191,7 +196,9 @@
                 // Ready
                 player.addListener('ready', ({ device_id }) => {
                     console.log('Ready with Device ID', device_id);
-                    setDevice(device_id);
+                    setDevice(device_id, () => {
+                      const progress = setInterval(getStatePosition, 100); // start the interval for getting the state's position after the device has been set
+                    });
                 });
 
                 // Not Ready
@@ -211,14 +218,16 @@
                     console.error(message);
                 });
 
-                player.addListener('player_state_changed', ({
-                    position,
-                    duration,
-                    track_window: { current_track }
-                  }) => {
-                    showCurrentlyPlaying();
-                  });
+                var currState = {}
+                player.addListener('player_state_changed', state => {
+                  currState.paused = state.paused;
+                  currState.position = state.position;
+                  currState.duration = state.duration;
+                  currState.updateTime = performance.now();
+                  showCurrentlyPlaying();
+                });
 
+                
                 document.getElementById('previousTrack').onclick = async function() {
                   player.previousTrack();
                 };
@@ -235,6 +244,49 @@
 
                 player.connect();
 
+                // Function to update the timestamp and song's duration
+                function updateTimestampAndDuration(position, duration) {
+                  const currentTimeElement = document.getElementById('current-time');
+                  const totalTimeElement = document.getElementById('total-duration');
+                  
+                  const currentTime = formatTime(position);
+                  const totalTime = formatTime(duration);
+                  
+                  currentTimeElement.textContent = currentTime;
+                  totalTimeElement.textContent = totalTime;
+                }
+
+                // Function to format time in MM:SS format
+                function formatTime(time) {
+                  const minutes = Math.floor(time / 1000 / 60);
+                  const seconds = Math.floor(time / 1000 % 60);
+                  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                }
+
+                function getStatePosition() {
+                  if (currState.paused) {
+                    return currState.position ? currState.position : 0;
+                  }
+                  let position = currState.position + (performance.now() - currState.updateTime);
+                  if (isNaN(position)) {
+                    console.log('Position is NaN. Resetting position to 0.');
+                    position = 0;
+                  }
+                  if (isNaN(currState.duration)) {
+                    currState.duration = 0;
+                  }
+                  setProgressBar(position);
+                  updateTimestampAndDuration(position, currState.duration);
+                  return position > currState.duration ? currState.duration : position;
+                }
+
+                function setProgressBar(position) {
+                  const progressBar = document.getElementById('progress-bar');
+                  const duration = currState.duration;
+                  const percentage = (position / duration) * 100;
+                  progressBar.style.width = percentage + '%';
+                }
+            
                 function updateBackground() {
                   var colors = ["#ee7752", "#e73c7e", "#23a6d5", "#23d5ab"];
                   var gradient = "linear-gradient(-45deg, ";
@@ -273,8 +325,8 @@
                   return color;
                 }
 
-
-                function setDevice(device_id) {
+                // ensures that the player is connected to spotify without the user having to manually connect it on a spotify application
+                function setDevice(device_id, callback) {
                   $.ajax({
                     url: 'https://api.spotify.com/v1/me/player',
                     type: 'PUT',
@@ -285,6 +337,7 @@
                     },
                     success: function(response) {
                       console.log('Device set for playback:', device_id);
+                      callback(); // executes the setInterval which calls getStatePosition periodically
                     },
                     error: function(xhr, status, error) {
                       console.error('Error setting device:', error);
@@ -324,12 +377,6 @@
             }
             })();
           </script>
-          <!-- Needs to be lowered a little on the page -->
-          <!-- <p class="lead">(Song Name)</p>
-          <p class="lead">(Pause/resume Button)</p> -->
-          <p class="lead">(Song timestamp)</p>
-          <label>Add Comment:</label><br>
-          <input type="text" id="commentInput" style="border-radius: 20px; padding: 10px;" placeholder="Type here...">
       </main>
     
       <footer class="mt-auto text-white-50">
