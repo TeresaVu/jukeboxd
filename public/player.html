@@ -70,12 +70,12 @@
           </div>
           <button class="btn btn-default" id="obtain-new-token"></button>
         </div>
-        <button id="previousTrack">Previous Track</button>
-        <button id="togglePlay">Toggle Play</button>
-        <button id="nextTrack">Next Track</button>
+        <p id="currentlyPlaying"></p>
+        <img id="currentTrackImage" src="" alt="" width="200px" height="200px"><br>
+        <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
+        <img id="togglePlay" src="./imgs/play2-removebg-preview.png" class="play-button" />
+        <img id="nextTrack" src="./imgs/next-removebg-preview.png" class="previous-button" />
         <br>
-        <img id="currentTrackImage" src="" alt="">
-        <p id="currentlyPlaying"></p><br>
         <div class="progress-container">
           <span class="timestamp" id="current-time">0:00</span>
           <div class="progress-bar-container">
@@ -221,6 +221,12 @@
                 var currState = {}
                 player.addListener('player_state_changed', state => {
                   currState.paused = state.paused;
+                  if(state.paused) {
+                    document.getElementById('togglePlay').setAttribute("src", "./imgs/play2-removebg-preview.png");
+                  }
+                  else {
+                    document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png")
+                  }
                   currState.position = state.position;
                   currState.duration = state.duration;
                   currState.updateTime = performance.now();
