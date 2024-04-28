@@ -1,0 +1,44 @@
+  .progress-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  .timestamp {
+    flex: 0 0 auto;
+    margin-right: 10px; /* Adjust as needed */
+    margin-left: 10px;
+  }
+  
+  .progress-bar-container {
+    flex: 1;
+    height: 10px; /* Adjust as needed */
+    background-color: #f0f0f0; /* Background color of the progress container */
+    border-radius: 5px; /* Half of the height to create a rounded container */
+    overflow: hidden; /* Hide overflow to prevent progress bar from overflowing */
+  }
+  
+  .progress-bar {
+    height: 100%;
+    background-color: #bababa; /* Color of the progress bar */
+    border-radius: 5px; /* Same as container to make it rounded */
+    width: 0; /* Initial width, will be updated by JavaScript */
+    transition: width 0.3s ease; /* Smooth transition when width changes */
+  }
+  .play-button {
+    padding: 10px;
+    transition: transform .2s;
+    width: 50px;
+    height: 50px;
+  }
+
+  .previous-button, .next-button {
+    padding: 10px;
+    transition: transform .2s;
+    width: 40px;
+    height: 40px;
+  }
+
+  .play-button:hover, .previous-button:hover, .next-button:hover {
+    transform: scale(1.2);
+  }
+  
