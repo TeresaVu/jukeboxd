@@ -1,6 +1,12 @@
   .progress-container {
+    position: absolute;
     display: flex;
     align-items: center;
+    width: 400px;
+    /* justify-content: center;
+    align-self: center; */
+    left: 50%;
+    margin-left: -200px;
   }
   
   .timestamp {
@@ -8,18 +14,18 @@
     margin-right: 10px; /* Adjust as needed */
     margin-left: 10px;
   }
-  
+
   .progress-bar-container {
     flex: 1;
     height: 10px; /* Adjust as needed */
-    background-color: #f0f0f0; /* Background color of the progress container */
+    background-color: black; /* Background color of the progress container */
     border-radius: 5px; /* Half of the height to create a rounded container */
     overflow: hidden; /* Hide overflow to prevent progress bar from overflowing */
   }
   
   .progress-bar {
     height: 100%;
-    background-color: #bababa; /* Color of the progress bar */
+    background-color: white; /* Color of the progress bar */
     border-radius: 5px; /* Same as container to make it rounded */
     width: 0; /* Initial width, will be updated by JavaScript */
     transition: width 0.3s ease; /* Smooth transition when width changes */
