@@ -365,7 +365,7 @@
                   for (let i = 1; i < current_track.artists.length; i++) {
                     artistNames = artistNames.concat(", ", current_track.artists[i].name);
                   }
-                  document.getElementById("currentlyPlaying").innerHTML = "".concat("Currently Playing ", current_track.name).concat(" by ", artistNames); 
+                  document.getElementById("currentlyPlaying").innerHTML = "".concat("Currently Playing: ", current_track.name).concat(" by ", artistNames); 
                   // Displaying the image of the current track
                   var albumImage = current_track.album.images[0].url;
                   var imageElement = document.getElementById("currentTrackImage");
