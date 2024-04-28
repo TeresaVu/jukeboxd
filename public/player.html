@@ -251,6 +251,93 @@
 
                 player.connect();
 
+                async function updateBackground() {
+                  const songFeatures = await getCurrentTrackFeatures();
+
+                  var colors = ["#ee7752", "#e73c7e", "#23a6d5", "#23d5ab"];
+                  var gradient = "linear-gradient(-45deg, ";
+                  var randomColors = [];
+
+                  // get random colors
+                  for (var i = 0; i < colors.length; i++) {
+                    var randomColor;
+                    do {
+                      randomColor = getRandomColor();
+                    } while (colors.indexOf(randomColor) !== -1);
+                    randomColors.push(randomColor);
+                  }
+                  for (var i = 0; i < randomColors.length; i++) {
+                    gradient += randomColors[i];
+                    if (i !== randomColors.length - 1) {
+                      gradient += ", ";
+                    }
+                  }
+
+                  gradient += ")";
+
+                  document.body.style.background = gradient;
+
+                  // add animation properties
+                  document.body.style.backgroundSize = "400% 400%";
+
+                  var animationSpeed = songFeatures[0];
+                  animationSpeed = 600 / animationSpeed; // Adjusting animation speed based on tempo
+                  document.getElementById("speed").textContent = 'Anim Speed: ' + animationSpeed;
+                  document.body.style.backgroundSize = "400% 400%";
+                  document.body.style.animation = "gradient " + animationSpeed + "s ease infinite";
+                  //document.body.style.animation = "gradient 15s ease infinite";
+                }
+
+                function getRandomColor() {
+                  var letters = '0123456789ABCDEF';
+                  var color = '#';
+                  for (var i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                  }
+                  return color;
+
+                  // valence : music positivity -> colors based on valence and energy
+                  // energy : measure of intensity -> should be what determines the vibrancy/saturation
+                  // tempo : bpm -> should change the speed of animation gradient based on this\
+                }
+
+                async function getCurrentTrackFeatures() {
+                  const state = await player.getCurrentState();
+                  if (!state) {
+                    console.error('User is not playing music through the Web Playback SDK');
+                    return;
+                  }
+
+                  const current_track_id = state.track_window.current_track.id;
+                  var songFeatures = [];
+                  var track_tempo = 0;
+                  var track_valence = 0;
+                  var track_energy = 0;
+
+                  await $.ajax({
+                    url: 'https://api.spotify.com/v1/audio-features/' + current_track_id,
+                    type: 'GET',
+                    headers: {
+                      'Authorization': 'Bearer ' + access_token
+                    },
+                    success: function(response) {
+                      track_tempo = response.tempo;
+                      document.getElementById("tempo").textContent = 'Tempo: ' + track_tempo;
+
+                      track_valence = response.valence;
+                      document.getElementById("valence").textContent = 'Valence: ' + track_valence;
+
+                      track_energy = response.energy;
+                      document.getElementById("energy").textContent = 'Energy: ' + track_energy;
+                    }
+                  });
+
+                  songFeatures[0] = track_tempo;
+                  songFeatures[1] = track_valence;
+                  songFeatures[2] = track_energy;
+                  return songFeatures;
+                }  
+
                 // Function to update the timestamp and song's duration
                 function updateTimestampAndDuration(position, duration) {
                   const currentTimeElement = document.getElementById('current-time');
@@ -293,45 +380,7 @@
                   const percentage = (position / duration) * 100;
                   progressBar.style.width = percentage + '%';
                 }
-            
-                function updateBackground() {
-                  var colors = ["#ee7752", "#e73c7e", "#23a6d5", "#23d5ab"];
-                  var gradient = "linear-gradient(-45deg, ";
-                  var randomColors = [];
-
-                  // get random colors
-                  for (var i = 0; i < colors.length; i++) {
-                      var randomColor;
-                      do {
-                        randomColor = getRandomColor();
-                      } while (colors.indexOf(randomColor) !== -1);
-                      randomColors.push(randomColor);
-                  }
-                  for (var i = 0; i < randomColors.length; i++) {
-                    gradient += randomColors[i];
-                    if (i !== randomColors.length - 1) {
-                      gradient += ", ";
-                    }
-                  }
-
-                  gradient += ")";
-    
-                  document.body.style.background = gradient;
-    
-                  // add animation properties
-                  document.body.style.backgroundSize = "400% 400%";
-                  document.body.style.animation = "gradient 15s ease infinite";
-                }
-
-                function getRandomColor() {
-                  var letters = '0123456789ABCDEF';
-                  var color = '#';
-                  for (var i = 0; i < 6; i++) {
-                    color += letters[Math.floor(Math.random() * 16)];
-                  }
-                  return color;
-                }
-
+          
                 // ensures that the player is connected to spotify without the user having to manually connect it on a spotify application
                 function setDevice(device_id, callback) {
                   $.ajax({
@@ -384,6 +433,10 @@
             }
             })();
           </script>
+          <p id= "tempo" ></p>
+          <p id= "valence" ></p>
+          <p id= "energy" ></p>
+          <p id= "speed" ></p>
       </main>
     
       <footer class="mt-auto text-white-50">
