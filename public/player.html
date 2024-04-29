@@ -108,7 +108,7 @@
               <div class="input-group mb-3">
                 <input id="commentInput" type="text" class="form-control" placeholder="Type here..." aria-label="Add comments" aria-describedby="basic-addon2">
                 <div class="input-group-append">
-                  <button class="btn btn-secondary" type="button">Post</button>
+                  <button class="btn btn-secondary" type="button" onclick="addComment()">Post</button>
                 </div>
               </div>
             </div>
@@ -187,6 +187,8 @@
               var access_token = params.access_token,
                   refresh_token = params.refresh_token,
                   error = params.error;
+
+              var userid = '';
       
               if (error) {
                 alert('There was an error during the authentication');
@@ -200,6 +202,7 @@
                       },
                       success: function(response) {
                           // Call your server endpoint /adduser here
+                          userid = response.id;
                           $.ajax({
                               url: '/adduser', // Replace with the correct URL of your server endpoint
                               type: 'POST', // Adjust the HTTP method as needed
@@ -672,6 +675,34 @@
                   }
                   });
                 }
+
+                async function addComment() {
+                  const state = await player.getCurrentState();
+                  const songID = state.track_window.current_track.id;
+                  var commentTimestamp = ((getStatePosition()) / 1000);
+                  var comment = document.getElementById("commentInput").value;
+
+                  console.log(JSON.stringify({"songID":songID, "userID": userid, "comment":comment, "timestamp":commentTimestamp}));
+
+                  $.ajax({
+                    url: '/addcomment', // Replace with the correct URL of your server endpoint
+                    type: 'POST', // Adjust the HTTP method as needed
+                    contentType: 'application/JSON',
+                    data: JSON.stringify({"songID":songID, "userID": userid, "comment":comment, "timestamp":commentTimestamp}), // Pass the response data to your server
+                    success: function(responseFromServer) {
+                        // Handle the response from your server if needed
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle errors if the request to your server fails
+                        console.error("Request to add comment failed.");
+                        console.error(error);
+                    }
+                  });
+
+                  document.getElementById("commentInput").value = "";
+                }
+
+                window.addComment = addComment;
 
               }
             })();

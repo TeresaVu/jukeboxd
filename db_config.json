@@ -1,0 +1,9 @@
+{
+    "sshhost": "thunder.cise.ufl.edu",
+    "sshuser": "haydenwatson",
+    "sshpassword": "461646Ab!",
+    "dbhost": "mysql.cise.ufl.edu",
+    "dbuser": "haydenwatson",
+    "dbpassword": "461646Ab",
+    "dbname": "jukeboxd"
+}
