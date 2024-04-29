@@ -133,30 +133,6 @@
           </div>
         </div>
 
-        <script id="user-profile-template" type="text/x-handlebars-template">
-            <h1>Logged in as {{display_name}}</h1>
-            <div class="media">
-              <div class="pull-left">
-                <img class="media-object" width="150" src="{{images.0.url}}" />
-              </div>
-              <div class="media-body">
-                <dl class="dl-horizontal">
-                  <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
-                  <dt>Id</dt><dd>{{id}}</dd>
-                </dl>
-              </div>
-            </div>
-          </script>
-      
-          <script id="oauth-template" type="text/x-handlebars-template">
-            <h2>oAuth info</h2>
-            <dl class="dl-horizontal">
-              <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
-              <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
-            </dl>
-            
-          </script>
-
           <script>
             (function() {
       
@@ -173,14 +149,6 @@
                 }
                 return hashParams;
               }
-      
-              var userProfileSource = document.getElementById('user-profile-template').innerHTML,
-                  userProfileTemplate = Handlebars.compile(userProfileSource),
-                  userProfilePlaceholder = document.getElementById('user-profile');
-      
-              var oauthSource = document.getElementById('oauth-template').innerHTML,
-                  oauthTemplate = Handlebars.compile(oauthSource),
-                  oauthPlaceholder = document.getElementById('oauth');
       
               var params = getHashParams();
       
@@ -234,10 +202,6 @@
                     }
                   }).done(function(data) {
                     access_token = data.access_token;
-                    oauthPlaceholder.innerHTML = oauthTemplate({
-                      access_token: access_token,
-                      refresh_token: refresh_token
-                    });
                   });
                 }, false);
               }
@@ -255,6 +219,9 @@
                     console.log('Ready with Device ID', device_id);
                     setDevice(device_id, () => {
                       const progress = setInterval(getStatePosition, 100); // start the interval for getting the state's position after the device has been set
+                    // get the list of comments and their timestamps and poll the state's position to display the commment when it hits the timestamp
+                    // need to call a function to get a list of the comments from the database once for every song
+                    // 
                     });
                 });
 
@@ -276,7 +243,30 @@
                 });
 
                 var currState = {}
+                var currSong = '';
+                var comments = {};
                 player.addListener('player_state_changed', state => {
+                  if (currSong != state.track_window.current_track.name) {
+                    // song has changed
+                    currSong = state.track_window.current_track;
+                    const trackId = currSong.current_track_id;
+                    var display = document.getElementById("inputGroupSelect03")
+                    display = display.options[display.selectedIndex].value;
+                    // call get comments for this song
+                    $.ajax({
+                        url: '/getcomments',
+                        type: 'GET',
+                        data: {trackId: trackId, display: display},
+                        success: function(responseFromServer) {
+                            // Handle the response from your server if needed
+                            console.log(responseFromServer);
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle errors if the request to your server fails
+                            console.error("Request to get comments failed.");
+                        }
+                    });
+                  }
                   currState.paused = state.paused;
                   if(state.paused) {
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/play2-removebg-preview.png");
@@ -600,6 +590,10 @@
                     imageElement.style.display = "none";
                   }
                   });
+                }
+
+                function displayComment() {
+
                 }
 
               }
