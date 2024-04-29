@@ -152,7 +152,6 @@ app.post('/adduser', function(req, res) {
   // Assuming you're using body-parser middleware to parse request bodies
   // Make sure to install body-parser package if not already installed with npm install body-parser
   const userData = req.body;
-  console.log("userData:", userData);
 
   mysqlssh.connect(
     {

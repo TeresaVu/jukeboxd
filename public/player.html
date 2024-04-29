@@ -251,6 +251,7 @@
                 var trackChanged = false;
                 var currTrack = "";
                 var animationSpeed = 0;
+                var currSong = '';
 
                 player.addListener('player_state_changed', state => {
                   if (currSong != state.track_window.current_track.name) {
