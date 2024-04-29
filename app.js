@@ -18,6 +18,9 @@ var client_id = '6683640408ce48908df3889b5dca9aa9'; // your clientId
 var client_secret = 'd3a976abdc0f4c919e1885287edb69f6'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
+const mysqlssh = require('mysql-ssh');
+const fs = require('fs');
+const bodyParser = require('body-parser');
 
 const generateRandomString = (length) => {
   return crypto
@@ -33,6 +36,7 @@ var app = express();
 app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
+app.use(bodyParser.json());
 
 app.get('/login', function(req, res) {
 
@@ -141,6 +145,43 @@ app.get('/refresh_token', function(req, res) {
         'refresh_token': refresh_token
       });
     }
+  });
+});
+
+app.post('/adduser', function(req, res) {
+  // Assuming you're using body-parser middleware to parse request bodies
+  // Make sure to install body-parser package if not already installed with npm install body-parser
+  const userData = req.body;
+  console.log("userData:", userData);
+
+  mysqlssh.connect(
+    {
+      host: 'thunder.cise.ufl.edu',
+      user: 'haydenwatson',
+      password: '461646Ab!'
+    },
+    {
+      host: 'mysql.cise.ufl.edu',
+      user: 'haydenwatson',
+      password: '461646Ab',
+      database: 'jukeboxd'
+    }
+  )
+  .then(client => {
+    client.query('SELECT COUNT(1) FROM User WHERE userID = ?', [userData.id], function (err, results, fields) {
+      if (err) throw err;
+      if (results[0]['COUNT(1)'] === 0) {
+        var sql = "INSERT INTO User(username, userID) VALUES (?, ?)";
+        client.query(sql, [userData.display_name, userData.id], function (err, result) {
+          if (err) throw err;
+          console.log("1 record inserted")
+        })
+      }
+      mysqlssh.close()
+    });
+  })
+  .catch(err => {
+    console.log(err)
   });
 });
 
