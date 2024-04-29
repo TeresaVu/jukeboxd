@@ -22,6 +22,9 @@ const mysqlssh = require('mysql-ssh');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 
+var CONFIG = require('./db_config.json');
+
+
 const generateRandomString = (length) => {
   return crypto
   .randomBytes(60)
@@ -155,15 +158,15 @@ app.post('/adduser', function(req, res) {
 
   mysqlssh.connect(
     {
-      host: 'thunder.cise.ufl.edu',
-      user: 'haydenwatson',
-      password: '461646Ab!'
+      host: CONFIG.sshhost,
+      user: CONFIG.sshuser,
+      password: CONFIG.sshpassword
     },
     {
-      host: 'mysql.cise.ufl.edu',
-      user: 'haydenwatson',
-      password: '461646Ab',
-      database: 'jukeboxd'
+      host: CONFIG.dbhost,
+      user: CONFIG.dbuser,
+      password: CONFIG.dbpassword,
+      database: CONFIG.dbname
     }
   )
   .then(client => {
@@ -176,12 +179,47 @@ app.post('/adduser', function(req, res) {
           console.log("1 record inserted")
         })
       }
-      mysqlssh.close()
+
     });
+  
   })
   .catch(err => {
     console.log(err)
   });
+});
+
+app.post('/addcomment', function(req, res) {
+  const commentData = req.body;
+  
+  mysqlssh.connect(
+    {
+      host: CONFIG.sshhost,
+      user: CONFIG.sshuser,
+      password: CONFIG.sshpassword
+    },
+    {
+      host: CONFIG.dbhost,
+      user: CONFIG.dbuser,
+      password: CONFIG.dbpassword,
+      database: CONFIG.dbname
+    }
+  )
+  .then(client => {
+      client.query('SELECT MAX(commentID) AS max FROM Comment;', function (err, results, fields) {
+        
+          if (err) throw err
+  
+          var commentID = results[0].max + 1;
+          var sql = "INSERT INTO Comment(commentID, comment, userID, songID, songTimestamp) VALUES (?, ?, ?, ?, ?)";
+          client.query(sql, [commentID, commentData.comment, commentData.userID, commentData.songID, commentData.timestamp], function (err, result) {
+            if (err) throw err;
+          });
+      })
+  })
+  .catch(err => {
+      console.log(err)
+  })
+  
 });
 
 app.get('/getcomments', function(req, res) {
