@@ -146,24 +146,34 @@
                 alert('There was an error during the authentication');
               } else {
                 if (access_token) {
-                  // render oauth info
-                  // oauthPlaceholder.innerHTML = oauthTemplate({
-                  //   access_token: access_token,
-                  //   refresh_token: refresh_token
-                  // });
-      
-                  // $.ajax({
-                  //     url: 'https://api.spotify.com/v1/me',
-                  //     headers: {
-                  //       'Authorization': 'Bearer ' + access_token
-                  //     },
-                  //     success: function(response) {
-                  //       userProfilePlaceholder.innerHTML = userProfileTemplate(response);
-      
-                  //       $('#login').hide();
-                  //       $('#loggedin').show();
-                  //     }
-                  // });
+
+                  $.ajax({
+                      url: 'https://api.spotify.com/v1/me',
+                      headers: {
+                          'Authorization': 'Bearer ' + access_token
+                      },
+                      success: function(response) {
+                          // Call your server endpoint /adduser here
+                          $.ajax({
+                              url: '/adduser', // Replace with the correct URL of your server endpoint
+                              type: 'POST', // Adjust the HTTP method as needed
+                              contentType: 'application/JSON',
+                              data: JSON.stringify(response), // Pass the response data to your server
+                              success: function(responseFromServer) {
+                                  // Handle the response from your server if needed
+                              },
+                              error: function(xhr, status, error) {
+                                  // Handle errors if the request to your server fails
+                                  console.error("Request to add user failed.");
+                                  console.error(error);
+                              }
+                          });
+                      },
+                      error: function(xhr, status, error) {
+                          // Handle errors if the request to the Spotify API fails
+                          console.error(error);
+                      }
+                  });
                 } else {
                     // render initial screen
                     $('#login').show();
