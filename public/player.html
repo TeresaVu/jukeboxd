@@ -265,28 +265,35 @@
                     console.error(message);
                 });
 
-                var currState = {}
+                var currState = {};
+                var pressedPlay = false;
+                var initial = true;
+
                 player.addListener('player_state_changed', state => {
                   currState.paused = state.paused;
                   if(state.paused) {
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/play2-removebg-preview.png");
                   }
                   else {
-                    document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png")
+                    document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png");
                   }
                   currState.position = state.position;
                   currState.duration = state.duration;
                   currState.updateTime = performance.now();
                   showCurrentlyPlaying();
-                  updateBackground();
+                  if(!state.paused && !pressedPlay || initial) {
+                    updateBackground();
+                    initial = false;
+                  }
+                  pressedPlay = false;
                 });
-
                 
                 document.getElementById('previousTrack').onclick = async function() {
                   player.previousTrack();
                 };
 
                 document.getElementById('togglePlay').onclick = function() {
+                  pressedPlay = true;
                   player.togglePlay();
                 };
 
@@ -309,6 +316,7 @@
                   var energy = songFeatures[2];
                   var danceability = songFeatures[3];
 
+                  // if high valence, high energy, and low dancibility -> warm colors
                   if (valence > .5 && energy > .5 && danceability < .6) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -318,6 +326,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // if high valence, high energy, and high dancibility -> vibrant
                   else if (valence > .5 && energy > .5 && danceability > .5) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -327,6 +336,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // if high valence and low energy -> pastel
                   else if (valence > .5 && energy < .5) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -336,6 +346,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // if low valence, low energy, low dancibility -> cool colors
                   else if (valence < .5 && energy < .5 && danceability < .5) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -345,6 +356,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // else random
                   else {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -370,13 +382,13 @@
                   document.body.style.backgroundSize = "400% 400%";
 
                   var animationSpeed = songFeatures[0];
-                  animationSpeed = 650 / animationSpeed; // Adjusting animation speed based on tempo
+                  animationSpeed = 650 / animationSpeed; // adjusts animation speed based on tempo
                   document.getElementById("speed").textContent = 'Anim Speed: ' + animationSpeed;
                   document.body.style.backgroundSize = "400% 400%";
                   document.body.style.animation = "gradient " + animationSpeed + "s ease infinite";
                 }
 
-
+                // returns random color
                 function getRandomColor() {
                   var letters = '0123456789ABCDEF';
                   var color = '#';
@@ -386,44 +398,43 @@
                   return color;
                 }
 
-                // based on valence and energy
                 function getWarmColor() {
                   var hue;
                   do {
                       hue = Math.floor(Math.random() * 360); 
-                  } while (!((hue >= 0 && hue <= 30) || (hue >= 330 && hue <= 360))); // random hue between 0-30 or 300-360
+                  } while (!((hue >= 0 && hue <= 30) || (hue >= 330 && hue <= 360))); // random hue between 0-30° or 300-360°
                   
-                  var saturation = Math.floor(Math.random() * 40) + 60; // random saturation between 50% and 100%
-                  var lightness = Math.floor(Math.random() * 20) + 40; // random lightness between 50% and 80%
+                  var saturation = Math.floor(Math.random() * 40) + 60; // random saturation between 60% and 100%
+                  var lightness = Math.floor(Math.random() * 20) + 40; // random lightness between 40% and 60%
                   return hslToHex(hue, saturation, lightness);
                 }
 
                 function getCoolColor() {
                     var hue;
                     do {
-                        hue = Math.floor(Math.random() * 360); // Random hue between 0° and 360°
+                        hue = Math.floor(Math.random() * 360); // random hue between 150°-270°
                     } while (!((hue >= 150 && hue <= 270)));
                     
                     var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 50% and 100%
-                    var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 50% and 80%
+                    var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 15% and 65%
                     return hslToHex(hue, saturation, lightness);
                 }
 
                 function getPastelColor() {
-                    var hue = Math.floor(Math.random() * 360); // Random hue between 0° and 360°
-                    var saturation = Math.floor(Math.random() * 30) + 70; // Random saturation between 70% and 100%
-                    var lightness = Math.floor(Math.random() * 15) + 75; // Random lightness between 50% and 100%
+                    var hue = Math.floor(Math.random() * 360); // random hue between 0°-360°
+                    var saturation = Math.floor(Math.random() * 30) + 70; // random saturation between 70% and 100%
+                    var lightness = Math.floor(Math.random() * 15) + 75; // random lightness between 75% and 90%
                     return hslToHex(hue, saturation, lightness);
                 }
 
                 function getVibrantColor() {
-                    var hue = Math.floor(Math.random() * 360); // Random hue between 0° and 360°
-                    var saturation = Math.floor(Math.random() * 30) + 70; // Random saturation between 70% and 100%
-                    var lightness = Math.floor(Math.random() * 15) + 45; // Random lightness between 50% and 100%
+                    var hue = Math.floor(Math.random() * 360); // random hue between 0°-360°
+                    var saturation = Math.floor(Math.random() * 30) + 70; // random saturation between 70% and 100%
+                    var lightness = Math.floor(Math.random() * 15) + 45; // random lightness between 45% and 60%
                     return hslToHex(hue, saturation, lightness);
                 }
 
-                function hslToHex(h, s, l) {
+                function hslToHex(h, s, l) { // converts hsl color parameters to hex code of color
                     h /= 360;
                     s /= 100;
                     l /= 100;
@@ -453,6 +464,7 @@
                 }
 
 
+                // track features used to determine color of bg
                 async function getCurrentTrackFeatures() {
                   const state = await player.getCurrentState();
                   if (!state) {
@@ -466,8 +478,9 @@
                   var track_valence = 0;
                   var track_energy = 0;
                   var track_danceability = 0;
-                  var url = "";
+                  var track_id = "";
 
+                  // gets current track features 
                   await $.ajax({
                     url: 'https://api.spotify.com/v1/audio-features/' + current_track_id,
                     type: 'GET',
@@ -487,11 +500,12 @@
                       track_danceability = response.danceability;
                       document.getElementById("danceability").textContent = 'Danceability: ' + track_danceability;
 
-                      url = response.id;
-                      document.getElementById("url").textContent = 'id: ' + url;
+                      track_id = response.id;
+                      document.getElementById("id").textContent = 'id: ' + track_id;
                     }
                   });
 
+                  // adds features into an array
                   songFeatures[0] = track_tempo;
                   songFeatures[1] = track_valence;
                   songFeatures[2] = track_energy;
@@ -599,7 +613,7 @@
           <p id= "valence" ></p>
           <p id= "energy" ></p>
           <p id= "danceability" ></p>
-          <p id= "url" ></p>
+          <p id= "id" ></p>
           <p id= "speed" ></p>
       </main>
     
