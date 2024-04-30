@@ -248,7 +248,6 @@ app.get('/getcomments', function(req, res) {
           if (err) throw err;
           res.json(result);
         });
-        console.log("database all");
       } else if (commentData.display == "own") {
 
         var sql = "SELECT * FROM Comment WHERE songID = ? AND userID = ?";
