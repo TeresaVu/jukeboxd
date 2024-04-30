@@ -75,13 +75,7 @@
       </header>
     
       <main class="px-3">
-        <div id="loggedin">
-          <div id="user-profile">
-          </div>
-          <div id="oauth">
-          </div>
-          <button class="btn btn-default" id="obtain-new-token"></button>
-        </div>
+        <div id="comment"></div>
         <p id="currentlyPlaying"></p>
         <img id="currentTrackImage" src="" alt="" width="200px" height="200px"><br>
         <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
@@ -133,30 +127,6 @@
           </div>
         </div>
 
-        <script id="user-profile-template" type="text/x-handlebars-template">
-            <h1>Logged in as {{display_name}}</h1>
-            <div class="media">
-              <div class="pull-left">
-                <img class="media-object" width="150" src="{{images.0.url}}" />
-              </div>
-              <div class="media-body">
-                <dl class="dl-horizontal">
-                  <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
-                  <dt>Id</dt><dd>{{id}}</dd>
-                </dl>
-              </div>
-            </div>
-          </script>
-      
-          <script id="oauth-template" type="text/x-handlebars-template">
-            <h2>oAuth info</h2>
-            <dl class="dl-horizontal">
-              <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
-              <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
-            </dl>
-            
-          </script>
-
           <script>
             (function() {
       
@@ -173,14 +143,6 @@
                 }
                 return hashParams;
               }
-      
-              var userProfileSource = document.getElementById('user-profile-template').innerHTML,
-                  userProfileTemplate = Handlebars.compile(userProfileSource),
-                  userProfilePlaceholder = document.getElementById('user-profile');
-      
-              var oauthSource = document.getElementById('oauth-template').innerHTML,
-                  oauthTemplate = Handlebars.compile(oauthSource),
-                  oauthPlaceholder = document.getElementById('oauth');
       
               var params = getHashParams();
       
@@ -229,20 +191,16 @@
                     $('#loggedin').hide();
                 }
       
-                document.getElementById('obtain-new-token').addEventListener('click', function() {
-                  $.ajax({
-                    url: '/refresh_token',
-                    data: {
-                      'refresh_token': refresh_token
-                    }
-                  }).done(function(data) {
-                    access_token = data.access_token;
-                    oauthPlaceholder.innerHTML = oauthTemplate({
-                      access_token: access_token,
-                      refresh_token: refresh_token
-                    });
-                  });
-                }, false);
+                // document.getElementById('obtain-new-token').addEventListener('click', function() {
+                //   $.ajax({
+                //     url: '/refresh_token',
+                //     data: {
+                //       'refresh_token': refresh_token
+                //     }
+                //   }).done(function(data) {
+                //     access_token = data.access_token;
+                //   });
+                // }, false);
               }
               window.onSpotifyWebPlaybackSDKReady = () => {
                 const token = access_token;
@@ -258,6 +216,7 @@
                     console.log('Ready with Device ID', device_id);
                     setDevice(device_id, () => {
                       const progress = setInterval(getStatePosition, 100); // start the interval for getting the state's position after the device has been set
+                    // get the list of comments and their timestamps and poll the state's position to display the commment when it hits the timestamp
                     });
                 });
 
@@ -287,10 +246,46 @@
                 var trackChanged = false;
                 var currTrack = "";
                 var animationSpeed = 0;
+                var currSong = '';
+                var commentsArray = [];
+                var songMap = [];
+                var commentsIntervalId = -1;
 
                 player.addListener('player_state_changed', state => {
+                  
+                  if ((currSong !== state.track_window.current_track.name) || getStatePosition() < 1000) { // check if the position is less than 1 sec into the song
+                    // song has changed or restarted
+                    
+                    if (commentsIntervalId != -1) {
+                      clearInterval(commentsIntervalId); // stop the loop that is checking if a comment exists at the current timestamp
+                    }
+                    
+                    currSong = state.track_window.current_track.name;
+                    const trackId = state.track_window.current_track.id;
+                    var display = document.getElementById("inputGroupSelect03")
+                    display = display.options[display.selectedIndex].value;
+                    // call get comments for this song
+                    $.ajax({
+                        url: '/getcomments',
+                        type: 'GET',
+                        data: {trackId: trackId, display: display},
+                        success: function(responseFromServer) {
+                            // Handle the response from your server if needed
+                            console.log(responseFromServer);
+                            commentsArray = responseFromServer;
+                            songMap = constructSongMap(commentsArray, Math.floor(state.duration / 1000));
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle errors if the request to your server fails
+                            console.error("Request to get comments failed.");
+                        }
+                    });
+                  }
                   currState.paused = state.paused;
                   if(state.paused) {
+                    if (commentsIntervalId != -1) {
+                      clearInterval(commentsIntervalId); // stop the loop that is checking if a comment exists at the current timestamp
+                    }
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/play2-removebg-preview.png");
                     pauseAnimation();
                   }
@@ -298,6 +293,18 @@
                   else {
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png");
                     resumeAnimation();
+
+                    // if the song is playing, check every second if the current position matches the next comment's timestamp.
+                    // ideas:
+                    // - originally thought to store comments in a queue and pop when the comment passes the current timestamp,
+                    // but does not work if the song restarts because the commentsQueue does not reset if the same song restarts, only when the song changes
+                    // - instead, store the comments in an array, sorted by timestamp, and binary search for the comment with the matching timestamp...for the timestamp retrieved every second?
+                    // that's inefficient. retrieval of the comment is O(mlogn) where n is num comments and m is num seconds in a song
+                    // - OR create a sort of bitmap. an array, size of num seconds in the song, and mark each second that has a comment.
+                    // associate the comment number in the bitmap with the index of the comment in the comments array to get the comment content. 
+                    // O(n) for setting up the bitmap with the comments. retrieval is O(1).
+                    
+                    commentsIntervalId = setInterval(displayComment, 1000);
                   }
 
                   currState.position = state.position;
@@ -337,6 +344,7 @@
                 };
 
                 player.connect();
+
 
                 async function updateBackground() {
                   const songFeatures = await getCurrentTrackFeatures();
@@ -702,6 +710,27 @@
                   document.getElementById("commentInput").value = "";
                 }
 
+                // check if there is a comment at the provided timestamp (ms)
+                // if there is, display the comment
+                function displayComment() {
+                  const currTime = Math.floor(getStatePosition() / 1000);
+                  if (songMap[currTime] !== false) {
+                    document.getElementById('comment').textContent = songMap[currTime].comment + " - " + songMap[currTime].userID;
+                  }
+                }
+
+                // return an array where the size is the number of seconds in the song and it is filled with 0s and 1s
+                // 0 if there is no comment at that second and 1 if there is a comment at that second
+                function constructSongMap(comments, songLengthSec) {
+                  var numComments = comments.length;
+                  let songMap = new Array(songLengthSec).fill(false);
+                  for (let i = 0; i < comments.length; i++) {
+                    var timestamp = comments[i].songTimestamp;
+                    songMap[timestamp] = comments[i];
+                  }
+
+                  return songMap;
+                }
                 window.addComment = addComment;
 
               }

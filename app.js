@@ -155,7 +155,6 @@ app.post('/adduser', function(req, res) {
   // Assuming you're using body-parser middleware to parse request bodies
   // Make sure to install body-parser package if not already installed with npm install body-parser
   const userData = req.body;
-  console.log("userData:", userData);
 
   mysqlssh.connect(
     {
@@ -221,6 +220,58 @@ app.post('/addcomment', function(req, res) {
       console.log(err)
   })
   
+});
+
+app.get('/getcomments', function(req, res) {
+  const commentData = req.query;
+  console.log(commentData);
+
+  mysqlssh.connect(
+    {
+      host: 'thunder.cise.ufl.edu',
+      user: 'haydenwatson',
+      password: '461646Ab!'
+    },
+    {
+      host: 'mysql.cise.ufl.edu',
+      user: 'haydenwatson',
+      password: '461646Ab',
+      database: 'jukeboxd'
+    }
+  )
+  .then(client => {
+
+      if (commentData.display == "all") {
+
+        var sql = "SELECT * FROM Comment WHERE songID = ?";
+        client.query(sql, [commentData.trackId], function (err, result) {
+          if (err) throw err;
+          res.json(result);
+        });
+      } else if (commentData.display == "own") {
+
+        var sql = "SELECT * FROM Comment WHERE songID = ? AND userID = ?";
+        client.query(sql, [commentData.songID, commentData.userID], function (err, result) {
+          if (err) throw err;
+          res.json(result);
+        });
+
+      } else {
+
+        // Send JSON with no records
+        var sql = "SELECT * FROM Comment WHERE 1 = 0";
+        client.query(sql, function (err, result) {
+          if (err) throw err;
+          res.json(result);
+        });
+
+      }
+
+  })
+  .catch(err => {
+      console.log(err)
+  })
+
 });
 
 // Start the server
