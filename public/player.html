@@ -59,21 +59,45 @@
 
 <body class="d-flex h-100 text-center text-white bg-dark">
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-      <header class="mb-auto">
-        <div>
-          <nav class="nav nav-masthead justify-content-center float-md-start">
+    <div class="search">
+                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()">
+                <button id="searchResult1" class="searchResults" onclick="playSearchResult1()"><img id="searchResult1Image" src="" width="25px" height="25px" /><p id="searchResult1Text" style="display: inline"></p></button><br>
+                <button id="searchResult2" class="searchResults" onclick="playSearchResult2()"><img id="searchResult2Image" src="" width="25px" height="25px" /><p id="searchResult2Text" style="display: inline"></p></button><br>
+                <button id="searchResult3" class="searchResults" onclick="playSearchResult3()"><img id="searchResult3Image" src="" width="25px" height="25px" /><p id="searchResult3Text" style="display: inline"></p></button><br>
+                <button id="searchResult4" class="searchResults" onclick="playSearchResult4()"><img id="searchResult4Image" src="" width="25px" height="25px" /><p id="searchResult4Text" style="display: inline"></p></button><br>
+                <button id="searchResult5" class="searchResults" onclick="playSearchResult5()"><img id="searchResult5Image" src="" width="25px" height="25px" /><p id="searchResult5Text" style="display: inline"></p></button>
+    </div>
+    <script>
+      var hide = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < hide.length; i++) {
+                  hide[i].style.visibility = "hidden";
+                }
+      var searchBar = document.getElementById("searchbar");
+      searchBar.addEventListener("keypress", function(event) {
+        if(event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("searchbutton").click();
+        }
+      });
+    </script>
+      <!-- <header class="mb-auto"> -->
+        <!-- <div> -->
+
+          <!-- <nav class="nav nav-masthead justify-content-center float-md-start">
             <div class="input-group">
               <div class="input-group mb-3 searchbar hiddenFormMouseover">
-                          <input type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1">
+                          <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1">
                 <div class="input-group-append">
-                  <button class="btn btn-primary" type="button">Search</button>
-                </div>
-              </div>
+                  <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
+                  <!-- <div class="input-group mb-3 searchbar hiddenFormMouseover"> -->
+                    <!-- <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
+                <!-- </div>
             </div>
           </nav>
-        </div>
-      </header>
-    
+          <br>
+        </div> -->
+      <!-- </header> -->
+
       <main class="px-3">
         <div id="comment"></div>
         <p id="currentlyPlaying"></p>
@@ -128,6 +152,208 @@
         </div>
 
           <script>
+            var searchToken;
+            var searchResult1_trackid;
+            var searchResult2_trackid;
+            var searchResult3_trackid;
+            var searchResult4_trackid;
+            var searchResult5_trackid;
+
+
+            function getSearchResults() {
+              //console.log(searchToken);
+              if(!document.getElementById("searchbar").value) {
+                var hide = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < hide.length; i++) {
+                  hide[i].style.visibility = "hidden";
+                }
+              }
+              else {
+                var show = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < show.length; i++) {
+                  show[i].style.visibility = "visible";
+                }
+              }
+              const query = document.getElementById("searchbar").value;
+              console.log(query);
+              const queryURL = encodeURI(`q=${query}`);
+              fetch(`https://api.spotify.com/v1/search?${queryURL}&type=track&limit=5`, {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`
+                }
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response;
+              })
+              .then(response => response.json())
+              .then(({tracks}) => {
+                console.log(tracks.items[0].album.images[0].url);
+                searchResult1_trackid = tracks.items[0].id;
+                document.getElementById("searchResult1Image").setAttribute("src", tracks.items[0].album.images[0].url);
+                searchResult2_trackid = tracks.items[1].id;
+                document.getElementById("searchResult2Image").setAttribute("src", tracks.items[1].album.images[0].url);
+                searchResult3_trackid = tracks.items[2].id;
+                document.getElementById("searchResult3Image").setAttribute("src", tracks.items[2].album.images[0].url);
+                searchResult4_trackid = tracks.items[3].id;
+                document.getElementById("searchResult4Image").setAttribute("src", tracks.items[3].album.images[0].url);
+                searchResult5_trackid = tracks.items[4].id;
+                document.getElementById("searchResult5Image").setAttribute("src", tracks.items[4].album.images[0].url);
+                for(let i = 0; i < tracks.items.length; i++) {
+                  console.log(tracks.items[i].name + " by " + tracks.items[i].artists[0].name + " id: " +tracks.items[i].id);
+                  document.getElementById("searchResult" + (i+1).toString() + "Text").innerHTML = "  " + tracks.items[i].name + " by " + tracks.items[i].artists[0].name;
+                }
+              })
+            };
+
+            function playSearchResult1() {
+              console.log("trying to play song with id: " + searchResult1_trackid);
+              const uri = "spotify:track:" + searchResult1_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult2() {
+              console.log("trying to play song with id: " + searchResult2_trackid);
+              const uri = "spotify:track:" + searchResult2_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult3() {
+              console.log("trying to play song with id: " + searchResult3_trackid);
+              const uri = "spotify:track:" + searchResult3_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult4() {
+              console.log("trying to play song with id: " + searchResult4_trackid);
+              const uri = "spotify:track:" + searchResult4_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult5() {
+              console.log("trying to play song with id: " + searchResult5_trackid);
+              const uri = "spotify:track:" + searchResult5_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+            
             (function() {
       
               /**
@@ -151,6 +377,7 @@
                   error = params.error;
 
               var userid = '';
+              searchToken = access_token;
       
               if (error) {
                 alert('There was an error during the authentication');
@@ -323,6 +550,8 @@
                     trackChanged = false;
                   }
                 });
+
+                
                 
                 document.getElementById('previousTrack').onclick = async function() {
                   pressedPrev = true;
