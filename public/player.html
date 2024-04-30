@@ -240,7 +240,6 @@
                 var currState = {};
                 var pressedPlay = false;
                 var initial = true;
-                var timesUpdated = 0;
                 var pressedPrev = false;
                 var pressedNext = false;
                 var trackChanged = false;
@@ -322,14 +321,14 @@
                     pressedNext = false;
                     pressedPrev = false;
                     trackChanged = false;
-                    timesUpdated++;
-                    document.getElementById("update").textContent = 'updated: ' + timesUpdated;
                   }
                 });
                 
                 document.getElementById('previousTrack').onclick = async function() {
                   pressedPrev = true;
-                  player.previousTrack();
+                  await player.previousTrack().then(() => {
+                    pressedPrev = false;
+                  });
                 };
 
                 document.getElementById('togglePlay').onclick = function() {
@@ -339,8 +338,9 @@
 
                 document.getElementById('nextTrack').onclick = async function() {
                   pressedNext = true;
-                  await player.nextTrack();
-                  showCurrentlyPlaying();
+                  await player.nextTrack().then(() => {
+                    pressedNext = false; 
+                  });
                 };
 
                 player.connect();
@@ -352,8 +352,7 @@
                   var gradient = "linear-gradient(-45deg, ";
                   var newColors = [];
 
-                  // get new colors
-                  
+                  // get new colors               
                   var valence = songFeatures[1];
                   var energy = songFeatures[2];
                   var danceability = songFeatures[3];
@@ -398,6 +397,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // low valence, high energy, and high danceability - > dark colors
                   else if (valence < .5 && energy > .5 && danceability > .5) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -434,7 +434,6 @@
 
                   animationSpeed = songFeatures[0];
                   animationSpeed = 650 / animationSpeed; // adjusts animation speed based on tempo
-                  document.getElementById("speed").textContent = 'Anim Speed: ' + animationSpeed;
                   document.body.style.backgroundSize = "400% 400%";
                   document.body.style.animation = "gradient " + animationSpeed + "s ease infinite";
                 }
@@ -463,7 +462,7 @@
                       hue = Math.floor(Math.random() * 360); 
                   } while (!((hue >= 0 && hue <= 30) || (hue >= 330 && hue <= 360))); // random hue between 0-30° or 300-360°
                   
-                  var saturation = Math.floor(Math.random() * 40) + 60; // random saturation between 60% and 100%
+                  var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 50% and 100%
                   var lightness = Math.floor(Math.random() * 20) + 40; // random lightness between 40% and 60%
                   return hslToHex(hue, saturation, lightness);
                 }
@@ -472,7 +471,7 @@
                     var hue;
                     do {
                         hue = Math.floor(Math.random() * 360); // random hue between 150°-270°
-                    } while (!((hue >= 150 && hue <= 270)));
+                    } while (!((hue >= 160 && hue <= 270)));
                     
                     var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 50% and 100%
                     var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 15% and 65%
@@ -490,9 +489,9 @@
                     var hue;
                     do {
                       hue = Math.floor(Math.random() * 360); 
-                  } while (!((hue >= 0 && hue <= 60) || (hue >= 120 && hue <= 360))); // random hue between 0-30° or 300-360°
-                    var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 40% and 100%
-                    var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 15% and 90%
+                  } while (!((hue >= 0 && hue <= 60) || (hue >= 120 && hue <= 360))); // random hue between 0-60° or 120-360°
+                    var saturation = Math.floor(Math.random() * 50) + 40; // random saturation between 40% and 100%
+                    var lightness = Math.floor(Math.random() * 45) + 15; // random lightness between 15% and 60%
                     return hslToHex(hue, saturation, lightness);
                 }
 
@@ -558,19 +557,14 @@
                     },
                     success: function(response) {
                       track_tempo = response.tempo;
-                      document.getElementById("tempo").textContent = 'Tempo: ' + track_tempo;
 
                       track_valence = response.valence;
-                      document.getElementById("valence").textContent = 'Valence: ' + track_valence;
 
                       track_energy = response.energy;
-                      document.getElementById("energy").textContent = 'Energy: ' + track_energy;
 
                       track_danceability = response.danceability;
-                      document.getElementById("danceability").textContent = 'Danceability: ' + track_danceability;
-
+                      
                       track_id = response.id;
-                      document.getElementById("id").textContent = 'id: ' + track_id;
                     }
                   });
 
@@ -736,13 +730,6 @@
               }
             })();
           </script>
-          <p id= "tempo" ></p>
-          <p id= "valence" ></p>
-          <p id= "energy" ></p>
-          <p id= "danceability" ></p>
-          <p id= "id" ></p>
-          <p id= "update" ></p>
-          <p id= "speed" ></p>
       </main>
     
       <footer class="mt-auto text-white-50">
