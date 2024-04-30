@@ -81,20 +81,44 @@
 
 <body class="d-flex h-100 text-center text-white bg-dark">
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-      <header class="mb-auto">
-        <div>
-          <nav class="nav nav-masthead justify-content-center float-md-start">
+    <div class="search">
+                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()">
+                <button id="searchResult1" class="searchResults" onclick="playSearchResult1()"><img id="searchResult1Image" src="" width="25px" height="25px" /><p id="searchResult1Text" style="display: inline"></p></button><br>
+                <button id="searchResult2" class="searchResults" onclick="playSearchResult2()"><img id="searchResult2Image" src="" width="25px" height="25px" /><p id="searchResult2Text" style="display: inline"></p></button><br>
+                <button id="searchResult3" class="searchResults" onclick="playSearchResult3()"><img id="searchResult3Image" src="" width="25px" height="25px" /><p id="searchResult3Text" style="display: inline"></p></button><br>
+                <button id="searchResult4" class="searchResults" onclick="playSearchResult4()"><img id="searchResult4Image" src="" width="25px" height="25px" /><p id="searchResult4Text" style="display: inline"></p></button><br>
+                <button id="searchResult5" class="searchResults" onclick="playSearchResult5()"><img id="searchResult5Image" src="" width="25px" height="25px" /><p id="searchResult5Text" style="display: inline"></p></button>
+    </div>
+    <script>
+      var hide = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < hide.length; i++) {
+                  hide[i].style.visibility = "hidden";
+                }
+      var searchBar = document.getElementById("searchbar");
+      searchBar.addEventListener("keypress", function(event) {
+        if(event.key === "Enter") {
+          event.preventDefault();
+          document.getElementById("searchbutton").click();
+        }
+      });
+    </script>
+      <!-- <header class="mb-auto"> -->
+        <!-- <div> -->
+
+          <!-- <nav class="nav nav-masthead justify-content-center float-md-start">
             <div class="input-group">
               <div class="input-group mb-3 searchbar hiddenFormMouseover">
-                          <input type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1">
+                          <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1">
                 <div class="input-group-append">
-                  <button class="btn btn-primary" type="button">Search</button>
-                </div>
-              </div>
+                  <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
+                  <!-- <div class="input-group mb-3 searchbar hiddenFormMouseover"> -->
+                    <!-- <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
+                <!-- </div>
             </div>
           </nav>
-        </div>
-      </header>
+          <br>
+        </div> -->
+      <!-- </header> -->
     
       <main class="px-3">
         <!-- Start of top comemnts section -->
@@ -137,8 +161,8 @@
         <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
         <img id="togglePlay" src="./imgs/play2-removebg-preview.png" class="play-button" />
         <img id="nextTrack" src="./imgs/next-removebg-preview.png" class="previous-button" />
-        <br> -->
-
+        <br>--->
+        
         <div class="container">
           <div class="row">
             <div class="col-md">
@@ -207,6 +231,208 @@
         </div>
 
           <script>
+            var searchToken;
+            var searchResult1_trackid;
+            var searchResult2_trackid;
+            var searchResult3_trackid;
+            var searchResult4_trackid;
+            var searchResult5_trackid;
+
+
+            function getSearchResults() {
+              //console.log(searchToken);
+              if(!document.getElementById("searchbar").value) {
+                var hide = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < hide.length; i++) {
+                  hide[i].style.visibility = "hidden";
+                }
+              }
+              else {
+                var show = document.getElementsByClassName("searchResults");
+                for(var i = 0; i < show.length; i++) {
+                  show[i].style.visibility = "visible";
+                }
+              }
+              const query = document.getElementById("searchbar").value;
+              console.log(query);
+              const queryURL = encodeURI(`q=${query}`);
+              fetch(`https://api.spotify.com/v1/search?${queryURL}&type=track&limit=5`, {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`
+                }
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response;
+              })
+              .then(response => response.json())
+              .then(({tracks}) => {
+                console.log(tracks.items[0].album.images[0].url);
+                searchResult1_trackid = tracks.items[0].id;
+                document.getElementById("searchResult1Image").setAttribute("src", tracks.items[0].album.images[0].url);
+                searchResult2_trackid = tracks.items[1].id;
+                document.getElementById("searchResult2Image").setAttribute("src", tracks.items[1].album.images[0].url);
+                searchResult3_trackid = tracks.items[2].id;
+                document.getElementById("searchResult3Image").setAttribute("src", tracks.items[2].album.images[0].url);
+                searchResult4_trackid = tracks.items[3].id;
+                document.getElementById("searchResult4Image").setAttribute("src", tracks.items[3].album.images[0].url);
+                searchResult5_trackid = tracks.items[4].id;
+                document.getElementById("searchResult5Image").setAttribute("src", tracks.items[4].album.images[0].url);
+                for(let i = 0; i < tracks.items.length; i++) {
+                  console.log(tracks.items[i].name + " by " + tracks.items[i].artists[0].name + " id: " +tracks.items[i].id);
+                  document.getElementById("searchResult" + (i+1).toString() + "Text").innerHTML = "  " + tracks.items[i].name + " by " + tracks.items[i].artists[0].name;
+                }
+              })
+            };
+
+            function playSearchResult1() {
+              console.log("trying to play song with id: " + searchResult1_trackid);
+              const uri = "spotify:track:" + searchResult1_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult2() {
+              console.log("trying to play song with id: " + searchResult2_trackid);
+              const uri = "spotify:track:" + searchResult2_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult3() {
+              console.log("trying to play song with id: " + searchResult3_trackid);
+              const uri = "spotify:track:" + searchResult3_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult4() {
+              console.log("trying to play song with id: " + searchResult4_trackid);
+              const uri = "spotify:track:" + searchResult4_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+
+            function playSearchResult5() {
+              console.log("trying to play song with id: " + searchResult5_trackid);
+              const uri = "spotify:track:" + searchResult5_trackid;
+              console.log(uri);
+              fetch(`https://api.spotify.com/v1/me/player/play`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${searchToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ // Convert body to JSON string
+                    uris: [uri]
+                })
+              })
+              .then(response => {
+                if(!response.ok) {
+                  throw Error("Response Not Ok")
+                }
+                return response.json();
+              })
+              .then(data => {
+                  // Handle successful response
+              })
+              .catch(error => {
+                  // Handle errors
+                  console.error('Error:', error);
+              });
+            }
+            
             (function() {
       
               /**
@@ -230,6 +456,7 @@
                   error = params.error;
 
               var userid = '';
+              searchToken = access_token;
       
               if (error) {
                 alert('There was an error during the authentication');
@@ -319,7 +546,6 @@
                 var currState = {};
                 var pressedPlay = false;
                 var initial = true;
-                var timesUpdated = 0;
                 var pressedPrev = false;
                 var pressedNext = false;
                 var trackChanged = false;
@@ -403,16 +629,15 @@
                     pressedNext = false;
                     pressedPrev = false;
                     trackChanged = false;
-                    timesUpdated++;
-                    document.getElementById("update").textContent = 'updated: ' + timesUpdated;
                   }
                 });
-                
+
                 document.getElementById('previousTrack').onclick = async function() {
                   pressedPrev = true;
-                  //clear comments
+                  await player.previousTrack().then(() => {
+                    pressedPrev = false;
+                  });
                   clearComments();
-                  player.previousTrack();
                 };
 
                 document.getElementById('togglePlay').onclick = function() {
@@ -422,10 +647,11 @@
 
                 document.getElementById('nextTrack').onclick = async function() {
                   pressedNext = true;
-                  await player.nextTrack();
-                  //clear comments
+
+                  await player.nextTrack().then(() => {
+                    pressedNext = false; 
+                  });
                   clearComments();
-                  showCurrentlyPlaying();
                 };
 
                 player.connect();
@@ -437,8 +663,7 @@
                   var gradient = "linear-gradient(-45deg, ";
                   var newColors = [];
 
-                  // get new colors
-                  
+                  // get new colors               
                   var valence = songFeatures[1];
                   var energy = songFeatures[2];
                   var danceability = songFeatures[3];
@@ -483,6 +708,7 @@
                       newColors.push(newColor);
                     }
                   }
+                  // low valence, high energy, and high danceability - > dark colors
                   else if (valence < .5 && energy > .5 && danceability > .5) {
                     for (var i = 0; i < 4; i++) {
                       var newColor;
@@ -519,7 +745,6 @@
 
                   animationSpeed = songFeatures[0];
                   animationSpeed = 650 / animationSpeed; // adjusts animation speed based on tempo
-                  document.getElementById("speed").textContent = 'Anim Speed: ' + animationSpeed;
                   document.body.style.backgroundSize = "400% 400%";
                   document.body.style.animation = "gradient " + animationSpeed + "s ease infinite";
                 }
@@ -548,7 +773,7 @@
                       hue = Math.floor(Math.random() * 360); 
                   } while (!((hue >= 0 && hue <= 30) || (hue >= 330 && hue <= 360))); // random hue between 0-30° or 300-360°
                   
-                  var saturation = Math.floor(Math.random() * 40) + 60; // random saturation between 60% and 100%
+                  var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 50% and 100%
                   var lightness = Math.floor(Math.random() * 20) + 40; // random lightness between 40% and 60%
                   return hslToHex(hue, saturation, lightness);
                 }
@@ -557,7 +782,7 @@
                     var hue;
                     do {
                         hue = Math.floor(Math.random() * 360); // random hue between 150°-270°
-                    } while (!((hue >= 150 && hue <= 270)));
+                    } while (!((hue >= 160 && hue <= 270)));
                     
                     var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 50% and 100%
                     var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 15% and 65%
@@ -575,9 +800,9 @@
                     var hue;
                     do {
                       hue = Math.floor(Math.random() * 360); 
-                  } while (!((hue >= 0 && hue <= 60) || (hue >= 120 && hue <= 360))); // random hue between 0-30° or 300-360°
-                    var saturation = Math.floor(Math.random() * 50) + 50; // random saturation between 40% and 100%
-                    var lightness = Math.floor(Math.random() * 50) + 15; // random lightness between 15% and 90%
+                  } while (!((hue >= 0 && hue <= 60) || (hue >= 120 && hue <= 360))); // random hue between 0-60° or 120-360°
+                    var saturation = Math.floor(Math.random() * 50) + 40; // random saturation between 40% and 100%
+                    var lightness = Math.floor(Math.random() * 45) + 15; // random lightness between 15% and 60%
                     return hslToHex(hue, saturation, lightness);
                 }
 
@@ -643,19 +868,14 @@
                     },
                     success: function(response) {
                       track_tempo = response.tempo;
-                      document.getElementById("tempo").textContent = 'Tempo: ' + track_tempo;
 
                       track_valence = response.valence;
-                      document.getElementById("valence").textContent = 'Valence: ' + track_valence;
 
                       track_energy = response.energy;
-                      document.getElementById("energy").textContent = 'Energy: ' + track_energy;
 
                       track_danceability = response.danceability;
-                      document.getElementById("danceability").textContent = 'Danceability: ' + track_danceability;
-
+                      
                       track_id = response.id;
-                      document.getElementById("id").textContent = 'id: ' + track_id;
                     }
                   });
 
