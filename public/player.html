@@ -34,7 +34,7 @@
 
             throttle = setTimeout(function() {
                 if (!isMouseOver) {
-                    childDiv.fadeTo(1000, 0.2);
+                    childDiv.fadeTo(1000, 0.1);
                 }
             }, 3000);
         });
@@ -48,11 +48,33 @@
         childDiv.mouseout(function() {
             throttle = setTimeout(function() {
                 if (!isMouseOver) {
-                    childDiv.fadeTo(1000, 0.2);
+                    childDiv.fadeTo(1000, 0.1);
                 }
             }, 3000);
             isMouseOver = false;
         });
+
+
+        $('.comment').each(function() {
+          var $this = $(this);
+          $this.data('original-content', $this.text());
+        });
+
+        function checkForChanges() {
+          $('.comment').each(function() {
+            var $this = $(this);
+            var originalContent = $this.data('original-content');
+            var currentContent = $this.text();
+            if (originalContent !== currentContent) {
+                $this.fadeOut(3000);
+                // Optionally, you can update the original content if needed
+                // $this.data('original-content', currentContent);
+            }
+          });
+        }
+
+        // Periodically check for changes
+        setInterval(checkForChanges, 1000);
       });
   </script>
 </head>
@@ -75,30 +97,69 @@
       </header>
     
       <main class="px-3">
-        <div id="comment"></div>
-        <p id="currentlyPlaying"></p>
+        <!-- Start of top comemnts section -->
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <p id="comment1" class="comment"></p>
+            </div>
+            <div class="col-6 justify-content-center">
+              <p id="comment2" class="comment"></p>
+            </div>
+            <div class="col">
+              <p id="comment3" class="comment"></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <p id="currentlyPlaying"></p>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <p id="comment4" class="comment"></p>
+          </div>
+          <div class="col-6">
+            <!-- currently playing -->
+            <img id="currentTrackImage" src="" alt="" width="200px" height="200px"><br>
+            <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
+            <img id="togglePlay" src="./imgs/play2-removebg-preview.png" class="play-button" />
+            <img id="nextTrack" src="./imgs/next-removebg-preview.png" class="previous-button" />
+            <br>
+          </div>
+          <div class="col">
+            <p id="comment5" class="comment"></p>
+          </div>
+        </div>
+        <!-- <p id="currentlyPlaying"></p>
         <img id="currentTrackImage" src="" alt="" width="200px" height="200px"><br>
         <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
         <img id="togglePlay" src="./imgs/play2-removebg-preview.png" class="play-button" />
         <img id="nextTrack" src="./imgs/next-removebg-preview.png" class="previous-button" />
-        <br>
-        <div class="progress-container">
-          <span class="timestamp" id="current-time">0:00</span>
-          <div class="progress-bar-container">
-            <div class="progress-bar" id="progress-bar"></div>
-          </div>
-          <span class="timestamp" id="total-duration">0:00</span>
-        </div>
-        <br>
+        <br> -->
 
-        <div class="container hiddenFormMouseover">
-          <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-              <label>Add Comment:</label>
+        <div class="container">
+          <div class="row">
+            <div class="col-md">
+              <div class="progress-container">
+                <span class="timestamp" id="current-time">0:00</span>
+                <div class="progress-bar-container">
+                  <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <span class="timestamp" id="total-duration">0:00</span>
+              </div>
+              <br>
             </div>
           </div>
+        </div>
+
+        <div class="container ">
+          <div class="row hiddenFormMouseover">
+              <label>Add Comment:</label>
+          </div>
           <div class="row justify-content-md-center">
-            <div class="col-md-auto">
+            <div class="col-md-auto hiddenFormMouseover">
               <div class="input-group mb-3">
                 <input id="commentInput" type="text" class="form-control" placeholder="Type here..." aria-label="Add comments" aria-describedby="basic-addon2">
                 <div class="input-group-append">
@@ -107,22 +168,40 @@
               </div>
             </div>
           </div>
-          <div class="row justify-content-md-center">
-            <div class="col-md-auto">
+          <div class="row">
+            <div class="col">
+              <p id="comment6" class="comment"></p>
+            </div>
+            <div class="col-8">
               <label>Toggle Comments:</label>
             </div>
+            <div class="col">
+              <p id="comment7" class="comment"></p>
+            </div>
           </div>
-          <div class="row justify-content-md-center">
-            <div class="col-md-auto">
-              <!-- Toggle User comments, all comments, no comments. Ajax to refresh the page comments immediately? -->
 
-              <div class="input-group mb-3">
+          <div class="row justify-content-md-center">
+              <!-- Toggle User comments, all comments, no comments. Ajax to refresh the page comments immediately? -->
+              <div class="input-group mb-3 justify-content-center">
                 <select class="custom-select" id="inputGroupSelect03">
                   <option selected value="all">All</option>
                   <option value="own">Your Own</option>
                   <option value="none">None</option>
                 </select>
               </div>
+          </div>
+        </div>
+
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <p id="comment8" class="comment"></p>
+            </div>
+            <div class="col-8">
+              <p id="comment9" class="comment"></p>
+            </div>
+            <div class="col">
+              <p id="comment10" class="comment"></p>
             </div>
           </div>
         </div>
@@ -268,7 +347,7 @@
                     $.ajax({
                         url: '/getcomments',
                         type: 'GET',
-                        data: {trackId: trackId, display: display},
+                        data: {trackId: trackId, display: display, userID: userid},
                         success: function(responseFromServer) {
                             // Handle the response from your server if needed
                             console.log(responseFromServer);
@@ -317,6 +396,8 @@
 
                   if ((!state.paused && !pressedPlay && (pressedNext || pressedPrev)) || initial || trackChanged) {
                     updateBackground();
+                    //clear comments
+                    clearComments();
                     initial = false;
                     pressedPlay = false;
                     pressedNext = false;
@@ -329,6 +410,8 @@
                 
                 document.getElementById('previousTrack').onclick = async function() {
                   pressedPrev = true;
+                  //clear comments
+                  clearComments();
                   player.previousTrack();
                 };
 
@@ -340,6 +423,8 @@
                 document.getElementById('nextTrack').onclick = async function() {
                   pressedNext = true;
                   await player.nextTrack();
+                  //clear comments
+                  clearComments();
                   showCurrentlyPlaying();
                 };
 
@@ -714,9 +799,34 @@
                 // if there is, display the comment
                 function displayComment() {
                   const currTime = Math.floor(getStatePosition() / 1000);
-                  if (songMap[currTime] !== false) {
-                    document.getElementById('comment').textContent = songMap[currTime].comment + " - " + songMap[currTime].userID;
-                  }
+
+                  var displayname;
+
+                  var currUserID = songMap[currTime].userID;
+
+                  $.ajax({
+                    url: 'https://api.spotify.com/v1/users/' + currUserID,
+                    headers: {
+                        'Authorization': 'Bearer ' + access_token
+                    },
+                    success: function(response) {
+                        // Call your server endpoint /adduser here
+                        displayname = response.display_name;
+                        if (songMap[currTime] !== false) {
+                          //randomize where the comment should go.
+                          //comment 1-9
+                          //save an array of current commentid displayed, check against is and get a new display?
+                          var commentID = Math.floor(Math.random() * 10) + 1;
+                          console.log("commentid" + commentID);
+                          document.getElementById("comment" + commentID).textContent = songMap[currTime].comment + " - " + displayname;
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle errors if the request to the Spotify API fails
+                        console.error(error);
+                    }
+                  });
+                  
                 }
 
                 // return an array where the size is the number of seconds in the song and it is filled with 0s and 1s
@@ -731,18 +841,18 @@
 
                   return songMap;
                 }
+
+                function clearComments() {
+                  for(let i = 1; i < 10; i++) {
+                    document.getElementById("comment" + i).textContent = "";
+                  }
+                }
+
                 window.addComment = addComment;
 
               }
             })();
           </script>
-          <p id= "tempo" ></p>
-          <p id= "valence" ></p>
-          <p id= "energy" ></p>
-          <p id= "danceability" ></p>
-          <p id= "id" ></p>
-          <p id= "update" ></p>
-          <p id= "speed" ></p>
       </main>
     
       <footer class="mt-auto text-white-50">
