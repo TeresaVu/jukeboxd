@@ -66,7 +66,7 @@
             var originalContent = $this.data('original-content');
             var currentContent = $this.text();
             if (originalContent !== currentContent) {
-                $this.fadeOut(3000);
+                $this.fadeOut(3000).delay(500);
                 // Optionally, you can update the original content if needed
                 $this.data('original-content', currentContent);
             }
@@ -82,7 +82,7 @@
 <body class="d-flex h-100 text-center text-white bg-dark">
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <div class="search">
-                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()">
+                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()" onblur="hideSearchResults()">
                 <button id="searchResult1" class="searchResults" onclick="playSearchResult1()"><img id="searchResult1Image" src="" width="25px" height="25px" /><p id="searchResult1Text" style="display: inline"></p></button><br>
                 <button id="searchResult2" class="searchResults" onclick="playSearchResult2()"><img id="searchResult2Image" src="" width="25px" height="25px" /><p id="searchResult2Text" style="display: inline"></p></button><br>
                 <button id="searchResult3" class="searchResults" onclick="playSearchResult3()"><img id="searchResult3Image" src="" width="25px" height="25px" /><p id="searchResult3Text" style="display: inline"></p></button><br>
@@ -123,7 +123,7 @@
       <main class="px-3">
         <!-- Start of top comemnts section -->
         <div class="container">
-          <div class="row">
+          <div class="row" style="height: 40px;">
             <div class="col">
               <p id="comment1" class="comment"></p>
             </div>
@@ -137,7 +137,7 @@
         </div>
         
         <div class="row">
-          <p id="currentlyPlaying"></p>
+          <p id="currentlyPlaying" style="font-weight: bold;"></p>
         </div>
 
         <div class="row">
@@ -178,13 +178,13 @@
           </div>
         </div>
 
-        <div class="container ">
+        <div class="container">
           <div class="row hiddenFormMouseover">
               <label>Add Comment:</label>
           </div>
           <div class="row justify-content-md-center">
-            <div class="col-md-auto hiddenFormMouseover">
-              <div class="input-group mb-3">
+            <div class="col-md-auto">
+              <div class="input-group mb-3 hiddenFormMouseover">
                 <input id="commentInput" type="text" class="form-control" placeholder="Type here..." aria-label="Add comments" aria-describedby="basic-addon2">
                 <div class="input-group-append">
                   <button class="btn btn-secondary" type="button" onclick="addComment()">Post</button>
@@ -192,7 +192,7 @@
               </div>
             </div>
           </div>
-          <div class="row">
+          <div class="row" style="height: 40px;">
             <div class="col">
               <p id="comment6" class="comment"></p>
             </div>
@@ -206,7 +206,7 @@
 
           <div class="row justify-content-md-center hiddenFormMouseover">
               <!-- Toggle User comments, all comments, no comments. Ajax to refresh the page comments immediately? -->
-              <div class="input-group mb-3 justify-content-center">
+              <div class="input-group mb-3 justify-content-center hiddenFormMouseover">
                 <select class="custom-select" id="inputGroupSelect03">
                   <option selected value="all">All</option>
                   <option value="own">Your Own</option>
@@ -238,14 +238,18 @@
             var searchResult4_trackid;
             var searchResult5_trackid;
 
+            function hideSearchResults() {
+              var hide = document.getElementsByClassName("searchResults");
+              for(var i = 0; i < hide.length; i++) {
+                hide[i].style.visibility = "hidden";
+              }
+              document.getElementById("searchbar").value = "";
+            }
 
             function getSearchResults() {
               //console.log(searchToken);
               if(!document.getElementById("searchbar").value) {
-                var hide = document.getElementsByClassName("searchResults");
-                for(var i = 0; i < hide.length; i++) {
-                  hide[i].style.visibility = "hidden";
-                }
+                hideSearchResults();
               }
               else {
                 var show = document.getElementsByClassName("searchResults");
@@ -555,15 +559,12 @@
                 var commentsArray = [];
                 var songMap = [];
                 var commentsIntervalId = -1;
+                var commentsIntervalActive = false;
 
                 player.addListener('player_state_changed', state => {
                   
                   if ((currSong !== state.track_window.current_track.name) || getStatePosition() < 1000) { // check if the position is less than 1 sec into the song
                     // song has changed or restarted
-                    
-                    if (commentsIntervalId != -1) {
-                      clearInterval(commentsIntervalId); // stop the loop that is checking if a comment exists at the current timestamp
-                    }
                     
                     currSong = state.track_window.current_track.name;
                     const trackId = state.track_window.current_track.id;
@@ -588,14 +589,22 @@
                   }
                   currState.paused = state.paused;
                   if(state.paused) {
-                    if (commentsIntervalId != -1) {
+                    if (commentsIntervalId !== -1) {
+                      console.log("interval cleared", commentsIntervalId);
                       clearInterval(commentsIntervalId); // stop the loop that is checking if a comment exists at the current timestamp
+                      commentsIntervalActive = false;
                     }
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/play2-removebg-preview.png");
                     pauseAnimation();
                   }
                   
                   else {
+                    // if a displayComment loop is not already going, set a new one. otherwise don't set a new loop, just let the current one keep looping
+                    if (!commentsIntervalActive) { 
+                      commentsIntervalId = setInterval(displayComment, 1000);
+                      commentsIntervalActive = true;
+                      console.log("interval set", commentsIntervalId);
+                    }
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png");
                     resumeAnimation();
 
@@ -609,7 +618,7 @@
                     // associate the comment number in the bitmap with the index of the comment in the comments array to get the comment content. 
                     // O(n) for setting up the bitmap with the comments. retrieval is O(1).
                     
-                    commentsIntervalId = setInterval(displayComment, 1000);
+                    
                   }
 
                   currState.position = state.position;
@@ -995,6 +1004,12 @@
                   var commentTimestamp = ((getStatePosition()) / 1000);
                   var comment = document.getElementById("commentInput").value;
 
+                  if (comment.length > 50) {
+                  
+                    return;
+                  
+                  }
+                  
                   console.log(JSON.stringify({"songID":songID, "userID": userid, "comment":comment, "timestamp":commentTimestamp}));
 
                   $.ajax({
@@ -1018,7 +1033,9 @@
                 // check if there is a comment at the provided timestamp (ms)
                 // if there is, display the comment
                 function displayComment() {
+                  console.log("comments interval id:", commentsIntervalId);
                   const currTime = Math.floor(getStatePosition() / 1000);
+                  console.log(currTime);
 
                   var displayname;
 
@@ -1038,6 +1055,8 @@
                           //save an array of current commentid displayed, check against is and get a new display?
                           var commentID = Math.floor(Math.random() * 10) + 1;
                           console.log("commentid" + commentID);
+                          console.log("comment:", songMap[currTime].comment);
+                          $("#comment" + commentID).fadeIn(0);
                           document.getElementById("comment" + commentID).textContent = songMap[currTime].comment + " - " + displayname;
                         }
                     },
@@ -1049,8 +1068,8 @@
                   
                 }
 
-                // return an array where the size is the number of seconds in the song and it is filled with 0s and 1s
-                // 0 if there is no comment at that second and 1 if there is a comment at that second
+                // return an array where the size is the number of seconds in the song and it is filled with false values and comment jsons
+                // false if there is no comment at that second and a comment json if there is a comment at that second
                 function constructSongMap(comments, songLengthSec) {
                   var numComments = comments.length;
                   let songMap = new Array(songLengthSec).fill(false);
