@@ -19,7 +19,7 @@ var client_secret = 'd3a976abdc0f4c919e1885287edb69f6'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 const mysqlssh = require('mysql-ssh');
-const fs = require('fs');
+//const fs = require('fs');
 const bodyParser = require('body-parser');
 
 var CONFIG = require('./db_config.json');
