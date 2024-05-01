@@ -41,6 +41,49 @@ app.use(express.static(__dirname + '/public'))
    .use(cookieParser());
 app.use(bodyParser.json());
 
+// Establishing MySQL SSH connection
+var dbClient = null;
+
+mysqlssh.connect(
+  {
+    host: CONFIG.sshhost,
+    user: CONFIG.sshuser,
+    password: CONFIG.sshpassword
+  },
+  {
+    host: CONFIG.dbhost,
+    user: CONFIG.dbuser,
+    password: CONFIG.dbpassword,
+    database: CONFIG.dbname
+  }
+)
+.then(client => {
+  console.log('MySQL SSH connection established');
+  dbClient = client;
+})
+.catch(err => {
+  console.log('Error establishing MySQL SSH connection:', err);
+});
+
+// Middleware to ensure MySQL SSH connection is established before processing requests
+app.use(function(req, res, next) {
+  if (dbClient) {
+    req.dbClient = dbClient;
+    next();
+  } else {
+    res.status(500).send('MySQL SSH connection not established');
+  }
+});
+
+var stateKey = 'spotify_auth_state';
+
+var app = express();
+
+app.use(express.static(__dirname + '/public'))
+   .use(cors())
+   .use(cookieParser());
+app.use(bodyParser.json());
+
 app.get('/login', function(req, res) {
 
   var state = generateRandomString(16);
@@ -156,69 +199,34 @@ app.post('/adduser', function(req, res) {
   // Make sure to install body-parser package if not already installed with npm install body-parser
   const userData = req.body;
 
-  mysqlssh.connect(
-    {
-      host: CONFIG.sshhost,
-      user: CONFIG.sshuser,
-      password: CONFIG.sshpassword
-    },
-    {
-      host: CONFIG.dbhost,
-      user: CONFIG.dbuser,
-      password: CONFIG.dbpassword,
-      database: CONFIG.dbname
-    }
-  )
-  .then(client => {
-    client.query('SELECT COUNT(1) FROM User WHERE userID = ?', [userData.id], function (err, results, fields) {
+    dbClient.query('SELECT COUNT(1) FROM User WHERE userID = ?', [userData.id], function (err, results, fields) {
       if (err) throw err;
       if (results[0]['COUNT(1)'] === 0) {
         var sql = "INSERT INTO User(username, userID) VALUES (?, ?)";
-        client.query(sql, [userData.display_name, userData.id], function (err, result) {
+        req.dbClient.query(sql, [userData.display_name, userData.id], function (err, result) {
           if (err) throw err;
           console.log("1 record inserted")
         })
       }
 
     });
-  
-  })
-  .catch(err => {
-    console.log(err)
-  });
+   
+ 
 });
 
 app.post('/addcomment', function(req, res) {
   const commentData = req.body;
   
-  mysqlssh.connect(
-    {
-      host: CONFIG.sshhost,
-      user: CONFIG.sshuser,
-      password: CONFIG.sshpassword
-    },
-    {
-      host: CONFIG.dbhost,
-      user: CONFIG.dbuser,
-      password: CONFIG.dbpassword,
-      database: CONFIG.dbname
-    }
-  )
-  .then(client => {
-      client.query('SELECT MAX(commentID) AS max FROM Comment;', function (err, results, fields) {
+      dbClient.query('SELECT MAX(commentID) AS max FROM Comment;', function (err, results, fields) {
         
           if (err) throw err
   
           var commentID = results[0].max + 1;
           var sql = "INSERT INTO Comment(commentID, comment, userID, songID, songTimestamp) VALUES (?, ?, ?, ?, ?)";
-          client.query(sql, [commentID, commentData.comment, commentData.userID, commentData.songID, commentData.timestamp], function (err, result) {
+          req.dbClient.query(sql, [commentID, commentData.comment, commentData.userID, commentData.songID, commentData.timestamp], function (err, result) {
             if (err) throw err;
           });
-      })
-  })
-  .catch(err => {
-      console.log(err)
-  })
+      });
   
 });
 
@@ -226,32 +234,17 @@ app.get('/getcomments', function(req, res) {
   const commentData = req.query;
   console.log(commentData);
 
-  mysqlssh.connect(
-    {
-      host: CONFIG.sshhost,
-      user: CONFIG.sshuser,
-      password: CONFIG.sshpassword
-    },
-    {
-      host: CONFIG.dbhost,
-      user: CONFIG.dbuser,
-      password: CONFIG.dbpassword,
-      database: CONFIG.dbname
-    }
-  )
-  .then(client => {
-
       if (commentData.display == "all") {
 
         var sql = "SELECT * FROM Comment WHERE songID = ?";
-        client.query(sql, [commentData.trackId], function (err, result) {
+        dbClient.query(sql, [commentData.trackId], function (err, result) {
           if (err) throw err;
           res.json(result);
         });
       } else if (commentData.display == "own") {
 
         var sql = "SELECT * FROM Comment WHERE songID = ? AND userID = ?";
-        client.query(sql, [commentData.trackId, commentData.userID], function (err, result) {
+        dbClient.query(sql, [commentData.trackId, commentData.userID], function (err, result) {
           if (err) throw err;
           res.json(result);
         });
@@ -260,17 +253,12 @@ app.get('/getcomments', function(req, res) {
 
         // Send JSON with no records
         var sql = "SELECT * FROM Comment WHERE 1 = 0";
-        client.query(sql, function (err, result) {
+        dbClient.query(sql, function (err, result) {
           if (err) throw err;
           res.json(result);
         });
 
       }
-
-  })
-  .catch(err => {
-      console.log(err)
-  })
 
 });
 
