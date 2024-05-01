@@ -251,7 +251,7 @@ app.get('/getcomments', function(req, res) {
       } else if (commentData.display == "own") {
 
         var sql = "SELECT * FROM Comment WHERE songID = ? AND userID = ?";
-        client.query(sql, [commentData.songID, commentData.userID], function (err, result) {
+        client.query(sql, [commentData.trackId, commentData.userID], function (err, result) {
           if (err) throw err;
           res.json(result);
         });
