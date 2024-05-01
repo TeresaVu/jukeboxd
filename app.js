@@ -19,7 +19,7 @@ var client_secret = 'd3a976abdc0f4c919e1885287edb69f6'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 const mysqlssh = require('mysql-ssh');
-//const fs = require('fs');
+// const fs = require('fs');
 const bodyParser = require('body-parser');
 
 var CONFIG = require('./db_config.json');
@@ -274,30 +274,13 @@ app.get('/getcomments', function(req, res) {
 
 });
 
+app.get('/', (req, res) => {
+  app.get('/callback');res.redirect('index.html');
+});
+
 // Start the server
-// var port = process.env.PORT || 8888;
-// app.listen(port, function () {
-//   console.log('Server is listening on port', port);
-// });
+const port = process.env.PORT || 8888;
 
-var http = require('http');
-var fs = require('fs');
-var url = require('url');
-var path = require('path');
-
-http.createServer(function (req, res) {
-  var q = url.parse(req.url, true);
-  var filename = "./public" + q.pathname; // Adjust the file path to include the "public" directory
-  if (filename == "./public/") {
-    filename = "./public/index.html"; // Serve index.html when the root path is accessed
-  }
-  fs.readFile(filename, function(err, data) {
-    if (err) {
-      res.writeHead(404, {'Content-Type': 'text/html'});
-      return res.end("404 Not Found");
-    } 
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(data);
-    return res.end();
-  });
-}).listen(8888);
+app.listen(port, () => {
+  console.log('Server running on port', port);
+});
