@@ -82,7 +82,7 @@
 <body class="d-flex h-100 text-center text-white bg-dark">
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <div class="search">
-                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()">
+                <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1" onkeyup="getSearchResults()" onblur="hideSearchResults()">
                 <button id="searchResult1" class="searchResults" onclick="playSearchResult1()"><img id="searchResult1Image" src="" width="25px" height="25px" /><p id="searchResult1Text" style="display: inline"></p></button><br>
                 <button id="searchResult2" class="searchResults" onclick="playSearchResult2()"><img id="searchResult2Image" src="" width="25px" height="25px" /><p id="searchResult2Text" style="display: inline"></p></button><br>
                 <button id="searchResult3" class="searchResults" onclick="playSearchResult3()"><img id="searchResult3Image" src="" width="25px" height="25px" /><p id="searchResult3Text" style="display: inline"></p></button><br>
@@ -238,14 +238,18 @@
             var searchResult4_trackid;
             var searchResult5_trackid;
 
+            function hideSearchResults() {
+              var hide = document.getElementsByClassName("searchResults");
+              for(var i = 0; i < hide.length; i++) {
+                hide[i].style.visibility = "hidden";
+              }
+              document.getElementById("searchbar").value = "";
+            }
 
             function getSearchResults() {
               //console.log(searchToken);
               if(!document.getElementById("searchbar").value) {
-                var hide = document.getElementsByClassName("searchResults");
-                for(var i = 0; i < hide.length; i++) {
-                  hide[i].style.visibility = "hidden";
-                }
+                hideSearchResults();
               }
               else {
                 var show = document.getElementsByClassName("searchResults");
