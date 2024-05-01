@@ -228,15 +228,15 @@ app.get('/getcomments', function(req, res) {
 
   mysqlssh.connect(
     {
-      host: 'thunder.cise.ufl.edu',
-      user: 'haydenwatson',
-      password: '461646Ab!'
+      host: CONFIG.sshhost,
+      user: CONFIG.sshuser,
+      password: CONFIG.sshpassword
     },
     {
-      host: 'mysql.cise.ufl.edu',
-      user: 'haydenwatson',
-      password: '461646Ab',
-      database: 'jukeboxd'
+      host: CONFIG.dbhost,
+      user: CONFIG.dbuser,
+      password: CONFIG.dbpassword,
+      database: CONFIG.dbname
     }
   )
   .then(client => {
