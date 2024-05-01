@@ -68,13 +68,13 @@
             if (originalContent !== currentContent) {
                 $this.fadeOut(3000).delay(500);
                 // Optionally, you can update the original content if needed
-                $this.data('original-content', currentContent);
+                //$this.data('original-content', currentContent);
             }
           });
         }
 
         // Periodically check for changes
-        setInterval(checkForChanges, 250);
+        setInterval(checkForChanges, 1000);
       });
   </script>
 </head>
