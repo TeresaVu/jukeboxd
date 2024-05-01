@@ -1004,6 +1004,12 @@
                   var commentTimestamp = ((getStatePosition()) / 1000);
                   var comment = document.getElementById("commentInput").value;
 
+                  if (comment.length > 50) {
+                  
+                    return;
+                  
+                  }
+                  
                   console.log(JSON.stringify({"songID":songID, "userID": userid, "comment":comment, "timestamp":commentTimestamp}));
 
                   $.ajax({
