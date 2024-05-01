@@ -275,7 +275,15 @@ app.get('/getcomments', function(req, res) {
 });
 
 // Start the server
-var port = process.env.PORT || 8888;
-app.listen(port, function () {
-  console.log('Server is listening on port', port);
-});
+// var port = process.env.PORT || 8888;
+// app.listen(port, function () {
+//   console.log('Server is listening on port', port);
+// });
+
+var http = require('http');
+
+
+http.createServer(function (req, res) {
+  res.write('** Welcome to Jukeboxd! **'); //write a response to the client
+  res.end(); //end the response
+}).listen(80); //the server object listens on port 80

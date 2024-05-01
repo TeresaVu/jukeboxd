@@ -68,13 +68,13 @@
             if (originalContent !== currentContent) {
                 $this.fadeOut(3000);
                 // Optionally, you can update the original content if needed
-                // $this.data('original-content', currentContent);
+                $this.data('original-content', currentContent);
             }
           });
         }
 
         // Periodically check for changes
-        setInterval(checkForChanges, 1000);
+        setInterval(checkForChanges, 250);
       });
   </script>
 </head>
@@ -196,7 +196,7 @@
             <div class="col">
               <p id="comment6" class="comment"></p>
             </div>
-            <div class="col-8">
+            <div class="col-8 hiddenFormMouseover">
               <label>Toggle Comments:</label>
             </div>
             <div class="col">
@@ -204,7 +204,7 @@
             </div>
           </div>
 
-          <div class="row justify-content-md-center">
+          <div class="row justify-content-md-center hiddenFormMouseover">
               <!-- Toggle User comments, all comments, no comments. Ajax to refresh the page comments immediately? -->
               <div class="input-group mb-3 justify-content-center">
                 <select class="custom-select" id="inputGroupSelect03">
