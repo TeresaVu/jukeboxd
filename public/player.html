@@ -178,13 +178,13 @@
           </div>
         </div>
 
-        <div class="container ">
+        <div class="container">
           <div class="row hiddenFormMouseover">
               <label>Add Comment:</label>
           </div>
           <div class="row justify-content-md-center">
-            <div class="col-md-auto hiddenFormMouseover">
-              <div class="input-group mb-3">
+            <div class="col-md-auto">
+              <div class="input-group mb-3 hiddenFormMouseover">
                 <input id="commentInput" type="text" class="form-control" placeholder="Type here..." aria-label="Add comments" aria-describedby="basic-addon2">
                 <div class="input-group-append">
                   <button class="btn btn-secondary" type="button" onclick="addComment()">Post</button>
@@ -196,7 +196,7 @@
             <div class="col">
               <p id="comment6" class="comment"></p>
             </div>
-            <div class="col-8">
+            <div class="col-8 hiddenFormMouseover">
               <label>Toggle Comments:</label>
             </div>
             <div class="col">
@@ -206,7 +206,7 @@
 
           <div class="row justify-content-md-center">
               <!-- Toggle User comments, all comments, no comments. Ajax to refresh the page comments immediately? -->
-              <div class="input-group mb-3 justify-content-center">
+              <div class="input-group mb-3 justify-content-center hiddenFormMouseover">
                 <select class="custom-select" id="inputGroupSelect03">
                   <option selected value="all">All</option>
                   <option value="own">Your Own</option>
