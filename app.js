@@ -223,7 +223,7 @@ app.post('/addcomment', function(req, res) {
   
           var commentID = results[0].max + 1;
           var sql = "INSERT INTO Comment(commentID, comment, userID, songID, songTimestamp) VALUES (?, ?, ?, ?, ?)";
-          req.dbClient.query(sql, [commentID, commentData.comment, commentData.userID, commentData.songID, commentData.timestamp], function (err, result) {
+          dbClient.query(sql, [commentID, commentData.comment, commentData.userID, commentData.songID, commentData.timestamp], function (err, result) {
             if (err) throw err;
           });
       });
