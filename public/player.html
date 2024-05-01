@@ -1051,7 +1051,7 @@
                           console.log("commentid" + commentID);
                           console.log("comment:", songMap[currTime].comment);
                           $("#comment" + commentID).fadeIn(0);
-                          document.getElementById("comment" + commentID).textContent = songMap[currTime].comment + " - " + currUserID;
+                          document.getElementById("comment" + commentID).textContent = songMap[currTime].comment + " - " + displayname;
                         }
                     },
                     error: function(xhr, status, error) {
