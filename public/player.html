@@ -102,23 +102,6 @@
         }
       });
     </script>
-      <!-- <header class="mb-auto"> -->
-        <!-- <div> -->
-
-          <!-- <nav class="nav nav-masthead justify-content-center float-md-start">
-            <div class="input-group">
-              <div class="input-group mb-3 searchbar hiddenFormMouseover">
-                          <input id="searchbar" type="text" class="form-control" placeholder="Search songs..." aria-label="Song Name" aria-describedby="basic-addon1">
-                <div class="input-group-append">
-                  <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
-                  <!-- <div class="input-group mb-3 searchbar hiddenFormMouseover"> -->
-                    <!-- <button id="searchbutton" class="btn btn-primary" type="button" onclick="getSearchResults()">Search</button> -->
-                <!-- </div>
-            </div>
-          </nav>
-          <br>
-        </div> -->
-      <!-- </header> -->
     
       <main class="px-3">
         <!-- Start of top comemnts section -->
@@ -156,12 +139,6 @@
             <p id="comment5" class="comment"></p>
           </div>
         </div>
-        <!-- <p id="currentlyPlaying"></p>
-        <img id="currentTrackImage" src="" alt="" width="200px" height="200px"><br>
-        <img id="previousTrack" src="./imgs/previous-removebg-preview.png" class="next-button" />
-        <img id="togglePlay" src="./imgs/play2-removebg-preview.png" class="play-button" />
-        <img id="nextTrack" src="./imgs/next-removebg-preview.png" class="previous-button" />
-        <br>--->
         
         <div class="container">
           <div class="row">
@@ -500,17 +477,6 @@
                     $('#login').show();
                     $('#loggedin').hide();
                 }
-      
-                // document.getElementById('obtain-new-token').addEventListener('click', function() {
-                //   $.ajax({
-                //     url: '/refresh_token',
-                //     data: {
-                //       'refresh_token': refresh_token
-                //     }
-                //   }).done(function(data) {
-                //     access_token = data.access_token;
-                //   });
-                // }, false);
               }
               window.onSpotifyWebPlaybackSDKReady = () => {
                 const token = access_token;
@@ -525,7 +491,7 @@
                 player.addListener('ready', ({ device_id }) => {
                     console.log('Ready with Device ID', device_id);
                     setDevice(device_id, () => {
-                      const progress = setInterval(getStatePosition, 100); // start the interval for getting the state's position after the device has been set
+                      const progress = setInterval(setProgressBar, 100); // start the interval for getting the state's position after the device has been set
                     // get the list of comments and their timestamps and poll the state's position to display the commment when it hits the timestamp
                     });
                 });
@@ -927,12 +893,12 @@
                   if (isNaN(currState.duration)) {
                     currState.duration = 0;
                   }
-                  setProgressBar(position);
-                  updateTimestampAndDuration(position, currState.duration);
                   return position > currState.duration ? currState.duration : position;
                 }
 
-                function setProgressBar(position) {
+                function setProgressBar() {
+                  const position = getStatePosition();
+                  updateTimestampAndDuration(position, currState.duration);
                   const progressBar = document.getElementById('progress-bar');
                   const duration = currState.duration;
                   const percentage = (position / duration) * 100;
