@@ -556,7 +556,6 @@
                   currState.paused = state.paused;
                   if(state.paused) {
                     if (commentsIntervalId !== -1) {
-                      console.log("interval cleared", commentsIntervalId);
                       clearInterval(commentsIntervalId); // stop the loop that is checking if a comment exists at the current timestamp
                       commentsIntervalActive = false;
                     }
@@ -569,7 +568,6 @@
                     if (!commentsIntervalActive) { 
                       commentsIntervalId = setInterval(displayComment, 1000);
                       commentsIntervalActive = true;
-                      console.log("interval set", commentsIntervalId);
                     }
                     document.getElementById('togglePlay').setAttribute("src", "./imgs/pause-removebg-preview.png");
                     resumeAnimation();
@@ -967,7 +965,7 @@
                 async function addComment() {
                   const state = await player.getCurrentState();
                   const songID = state.track_window.current_track.id;
-                  var commentTimestamp = ((getStatePosition()) / 1000);
+                  var commentTimestamp = Math.floor((getStatePosition()) / 1000); // make sure the timestamp is an integer
                   var comment = document.getElementById("commentInput").value;
 
                   if (comment.length > 50) {
@@ -992,46 +990,45 @@
                         console.error(error);
                     }
                   });
-
+                  positionComment(comment, userid);
                   document.getElementById("commentInput").value = "";
                 }
 
                 // check if there is a comment at the provided timestamp (ms)
                 // if there is, display the comment
                 function displayComment() {
-                  console.log("comments interval id:", commentsIntervalId);
                   const currTime = Math.floor(getStatePosition() / 1000);
-                  console.log(currTime);
 
+                  if (songMap[currTime] !== false) {
+                    var currUserID = songMap[currTime].userID;
+                    positionComment(songMap[currTime].comment, currUserID);
+                  }
+                  
+                }
+
+                function positionComment(commentText, currUserID) {
                   var displayname;
 
-                  var currUserID = songMap[currTime].userID;
-
                   $.ajax({
-                    url: 'https://api.spotify.com/v1/users/' + currUserID,
-                    headers: {
-                        'Authorization': 'Bearer ' + access_token
-                    },
-                    success: function(response) {
-                        // Call your server endpoint /adduser here
-                        displayname = response.display_name;
-                        if (songMap[currTime] !== false) {
+                      url: 'https://api.spotify.com/v1/users/' + currUserID,
+                      headers: {
+                          'Authorization': 'Bearer ' + access_token
+                      },
+                      success: function(response) {
+                          // Call your server endpoint /adduser here
+                          displayname = response.display_name;
                           //randomize where the comment should go.
                           //comment 1-9
                           //save an array of current commentid displayed, check against is and get a new display?
                           var commentID = Math.floor(Math.random() * 10) + 1;
-                          console.log("commentid" + commentID);
-                          console.log("comment:", songMap[currTime].comment);
                           $("#comment" + commentID).fadeIn(0);
-                          document.getElementById("comment" + commentID).textContent = songMap[currTime].comment + " - " + displayname;
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle errors if the request to the Spotify API fails
-                        console.error(error);
-                    }
-                  });
-                  
+                          document.getElementById("comment" + commentID).textContent = commentText + " - " + displayname;
+                      },
+                      error: function(xhr, status, error) {
+                          // Handle errors if the request to the Spotify API fails
+                          console.error(error);
+                      }
+                    });
                 }
 
                 // return an array where the size is the number of seconds in the song and it is filled with false values and comment jsons
