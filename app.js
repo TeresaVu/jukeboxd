@@ -13,17 +13,20 @@ var crypto = require('crypto');
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+require('dotenv').config();
 
-var client_id = '6683640408ce48908df3889b5dca9aa9'; // your clientId
-var client_secret = 'd3a976abdc0f4c919e1885287edb69f6'; // Your secret
-var redirect_uri = 'http://ec2-18-117-145-1.us-east-2.compute.amazonaws.com:8888/callback'; // Your redirect uri
+var client_id = process.env.CLIENT_ID;
+var client_secret = process.env.CLIENT_SECRET; // Your secret
+// var redirect_uri = 'http://ec2-18-117-145-1.us-east-2.compute.amazonaws.com:8888/callback'; // Your redirect uri
+// var redirect_uri = 'https://jukeboxd-aut8l2do9-teresa-vus-projects.vercel.app/callback'; // Your redirect uri
+// var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
+var redirect_uri = process.env.REDIRECT_URI; // Your redirect uri
 
 const mysqlssh = require('mysql-ssh');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 
 var CONFIG = require('./db_config.json');
-
 
 const generateRandomString = (length) => {
   return crypto
